@@ -2,6 +2,7 @@
 __pycache__/
 data/
 models/
+.vs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
