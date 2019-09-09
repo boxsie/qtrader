@@ -17,7 +17,8 @@ if __name__ == "__main__":
         name='btc-broker',
         num_states=broker.num_states,
         num_actions=broker.num_actions,
-        batch_size=32, max_memory=10000,
+        batch_size=32, 
+        max_memory=10000,
         save_cnt=1000,
         model_path='models'
     )
