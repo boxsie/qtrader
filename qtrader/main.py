@@ -1,9 +1,15 @@
-from agent import Agent
+import gevent.monkey
+gevent.monkey.patch_all()
+from requests.packages.urllib3.util.ssl_ import create_urllib3_context
+create_urllib3_context()
+
+import os
+from qlearn.agent import Agent
 from ticker import TickerLocal
 from broker import Broker
 
 if __name__ == "__main__":
-    ticker = TickerLocal('data/coinbase.csv')
+    ticker = TickerLocal(os.path.join('data', 'coinbase.csv'))
 
     broker = Broker(
         ticker=ticker,
@@ -17,7 +23,7 @@ if __name__ == "__main__":
         name='btc-broker',
         num_states=broker.num_states,
         num_actions=broker.num_actions,
-        batch_size=32, 
+        batch_size=32,
         max_memory=10000,
         save_cnt=1000,
         model_path='models'

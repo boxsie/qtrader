@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 
 class Model:
@@ -31,9 +32,11 @@ class Model:
         sess.run(self._optimiser, feed_dict={self._states: x_batch, self._qsa: y_batch})
 
     def save(self, sess, path, filename):
-        save_path = self._saver.save(sess, f'{path}/{filename}.ckpt')
-        print(f'Model saved in path: {path}/{filename}.ckpt')
+        full = os.path.join(path, f'{filename}.ckpt')
+        save_path = self._saver.save(sess, f'{full}')
+        print(f'Model saved in path: {full}')
 
     def load(self, sess, path, filename):
-        self._saver.restore(sess, f'{path}/{filename}.ckpt')
-        print(f'Model loaded from path: {path}/{filename}.ckpt')
+        full = os.path.join(path, f'{filename}.ckpt')
+        self._saver.restore(sess, f'{full}')
+        print(f'Model loaded from path: {full}')

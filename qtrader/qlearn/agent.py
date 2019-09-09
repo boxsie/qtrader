@@ -1,9 +1,9 @@
 import os
 import tensorflow as tf
 
-from model import Model
-from memory import Memory
-from trainer import Trainer
+from .model import Model
+from .memory import Memory
+from .trainer import Trainer
 
 class Agent:
     def __init__(self, name, num_states, num_actions, batch_size, max_memory, save_cnt, model_path):

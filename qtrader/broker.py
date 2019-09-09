@@ -1,11 +1,11 @@
 import math
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
+from connect import Connect
 from position import Position
 import indicators
+
 
 class Broker:
     def __init__(self, ticker, starting_balance, trade_pct, fee_pct, tick_size):
@@ -16,7 +16,8 @@ class Broker:
         self._trade_pct = trade_pct
         self._fee_pct = fee_pct
         self._tick_size = tick_size
-
+        self._connect = Connect()
+        self._connect.start()
         self.reset()
 
     def reset(self):
