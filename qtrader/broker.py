@@ -1,6 +1,7 @@
 import math
 import pandas as pd
 import numpy as np
+import json
 
 from connect import Connect
 from position import Position
@@ -16,9 +17,9 @@ class Broker:
         self._trade_pct = trade_pct
         self._fee_pct = fee_pct
         self._tick_size = tick_size
-        self._connect = Connect()
-        self._connect.start()
         self.reset()
+
+        self._connect = Connect()
 
     def reset(self):
         self._position = None
@@ -57,7 +58,18 @@ class Broker:
         max_profit = max(profits) if len(profits) > 0 else 0
         min_profit = min(profits) if len(profits) > 0 else 0
         pos = f'{self._position.buy_sell.upper()}:{self._position.quantity:,.2f}@{self._position.open:,.2f}' if self._position else 'None     '
-        print(f'Biggest Win:{max_profit:,.2f} | Biggest Loss:{min_profit:,.2f} | Avg. Profit:{avg_profit * 100:,.2f}% | Balance:{self._balance:,.2f} | Position P&L:{current_pct * 100:,.2f}% | Position:{pos} | Price:{price}                 ', end='\r')
+
+        self._connect.send_message(json.dumps({
+            'maxWin': max_profit,
+            'maxLoss': min_profit,
+            'avgProfitPct': avg_profit,
+            'balance': self._balance,
+            'currentPosition': pos,
+            'positionPnlPct': current_pct,
+            'currentPrice': price
+        }))
+
+        print(f'Biggest Win:{max_profit:,.2f} | Biggest Loss:{min_profit:,.2f} | Avg. Profit:{avg_profit * 100.0:,.2f}% | Balance:{self._balance:,.2f} | Position P&L:{current_pct * 100.0:,.2f}% | Position:{pos} | Price:{price}                 ', end='\r')
 
         return is_complete, state, reward
 

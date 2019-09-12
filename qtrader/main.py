@@ -1,8 +1,3 @@
-import gevent.monkey
-gevent.monkey.patch_all()
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
-create_urllib3_context()
-
 import os
 from qlearn.agent import Agent
 from ticker import TickerLocal

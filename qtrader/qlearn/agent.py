@@ -22,7 +22,7 @@ class Agent:
 
     def train(self, broker, max_eps=1.0, min_eps=0.1, decay=0.1, gamma=0.5, learning_rate=1e-3):
         cnt = 0
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             trainer = self._create_trainer(sess, broker, max_eps, min_eps, decay, gamma)
             var_init = self._model.prepare(learning_rate)
             sess.run(var_init)

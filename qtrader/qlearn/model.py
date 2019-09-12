@@ -16,10 +16,10 @@ class Model:
         self._logits = tf.layers.dense(fc2, self.num_actions)
 
     def prepare(self, learning_rate):
-        loss = tf.losses.mean_squared_error(self._qsa, self._logits)
-        self._optimiser = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
-        self._var_init = tf.global_variables_initializer()
-        self._saver = tf.train.Saver()
+        loss = tf.compat.v1.losses.mean_squared_error(self._qsa, self._logits)
+        self._optimiser = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
+        self._var_init = tf.compat.v1.global_variables_initializer()
+        self._saver = tf.compat.v1.train.Saver()
         return self._var_init
 
     def predict_one(self, state, sess):
