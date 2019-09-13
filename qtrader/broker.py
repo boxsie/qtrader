@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import json
 
-from connect import Connect
+from client import Client
 from position import Position
 import indicators
 
@@ -19,7 +19,8 @@ class Broker:
         self._tick_size = tick_size
         self.reset()
 
-        self._connect = Connect()
+        self._connect = Client('localhost', 5000)
+        self._connect.start()
 
     def reset(self):
         self._position = None
@@ -68,8 +69,6 @@ class Broker:
             'positionPnlPct': current_pct,
             'currentPrice': price
         }))
-
-        print(f'Biggest Win:{max_profit:,.2f} | Biggest Loss:{min_profit:,.2f} | Avg. Profit:{avg_profit * 100.0:,.2f}% | Balance:{self._balance:,.2f} | Position P&L:{current_pct * 100.0:,.2f}% | Position:{pos} | Price:{price}                 ', end='\r')
 
         return is_complete, state, reward
 
