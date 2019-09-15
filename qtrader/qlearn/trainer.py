@@ -22,7 +22,7 @@ class Trainer:
 
     def train(self):
         action = self._choose_action(self._state) if self._state.any() else 0
-        is_complete, next_state, reward = self._env.update(action)
+        is_complete, next_state, reward, stats = self._env.update(action)
 
         if not self._state.any():
             self._state = next_state
@@ -39,7 +39,7 @@ class Trainer:
             if is_complete:
                 self._reward_store.append(self._total_reward)
 
-        return is_complete
+        return is_complete, self._state, reward, stats
 
     def _choose_action(self, state):
         rnd = random.random()

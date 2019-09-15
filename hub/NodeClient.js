@@ -1,6 +1,6 @@
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
-export class Client {
+export class NodeClient {
     constructor(address, port) {
         this._address = address;
         this._port = port;

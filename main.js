@@ -1,14 +1,10 @@
 import { spawn } from 'child_process';
-import { Server } from './Server';
-import { Client } from './Client';
+import { Server } from './hub/Server';
 
-const server = new Server('qtrader', 5000);
+const server = new Server('qtrader', 5000, 5001, 'dashboard');
 server.start();
 
-const client = new Client('localhost', 5000);
-client.connect();
-
-const qtraderPy = spawn('python', ['-u', '../qtrader/main.py']);
+const qtraderPy = spawn('python', ['-u', 'qtrader/main.py']);
 
 var uint8arrayToString = (data) => {
     return String.fromCharCode.apply(null, data);

@@ -15,14 +15,32 @@ class Client:
         wst.daemon = True
         wst.start()
 
-    def send_message(self, msg):
+    def send_update(self, state, reward, stats):
+        msg = json.dumps({
+            'action': 'update',
+            'state': state,
+            'reward': reward,
+            'stats': stats
+        })
+        self._send_message(msg)
+
+    def send_command(self, command):
+        msg = json.dumps({
+            'action': 'command',
+            'command': command
+        })
+        self._send_message(msg)
+
+    def _send_message(self, msg):
         self._client.send(msg)
 
-    async def _run_forever(self):
-        await self._client.run_forever()
+    def _run_forever(self):
+        self._client.run_forever()
 
     def _on_message(self, msg):
-        print(f'Received: {msg}')
+        obj = json.loads(msg)
+        if obj['action'] == 'command':
+            print(f"Command '{obj['command']}' received")
 
     def _on_error(self, error):
         print(error)
@@ -33,7 +51,3 @@ class Client:
     def _on_open(self):
         print('Python client connected')
         self._client.send('Hello from Python')
-
-if __name__ == '__main__':
-    client = Client('localhost', 5000)
-    asyncio.run(client.start())

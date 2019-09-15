@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="out/index.css" />
+</head>
+
+<body>
+    <div id="main">
+        <nav class="navbar navbar-light bg-light">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">QTrader</span>
+            </div>
+        </nav>
+        <div class="mt-5 container-fluid">
+            <div class="row">
+                <div class="col-3 text-center">
+                    <h5>BALANCE</h5>
+                    <p class="stats">${{stats.balance.toFixed(2).toLocaleString()}}</p>
+                </div>
+                <div class="col-3 text-center">
+                    <h5>AVG PROFIT %</h5>
+                    <p class="stats">{{(stats.avgProfitPct * 100).toFixed(2)}} %</p>
+                </div>
+                <div class="col-3 text-center">
+                    <h5>BEST PROFIT</h5>
+                    <p class="stats">$ {{stats.maxWin.toFixed(2)}}</p>
+                </div>
+                <div class="col-3 text-center">
+                    <h5>BIGGEST LOSS</h5>
+                    <p class="stats">$ {{stats.maxLoss.toFixed(2)}}</p>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-10">
+                    <canvas id="priceChart" ref="priceChart" height="200"></canvas>
+                </div>
+                <div class="col-2">
+                    <h5 class="mt-4 mb-3">PRICE</h5>
+                    <p class="stats">${{stats.currentPrice}}</p>
+                    <h5 class="mt-5 mb-3">POSITION</h5>
+                    <div v-if="stats.currentPosition">
+                        <p class="stats" :class="stats.currentPosition.pos">
+                            {{stats.currentPosition.pos.toUpperCase()}}
+                        </p>
+                        <p class="stats">
+                            {{stats.currentPosition.quantity.toFixed(2)}} @ &nbsp;$ {{stats.currentPosition.open.toFixed(2).toLocaleString()}}
+                        </p>
+                        <p class="stats" :class="stats.currentPosition.pnlPct >= 0 ? 'buy' : 'sell'">
+                            $ {{(stats.currentPosition.quantity * stats.currentPrice).toFixed(2).toLocaleString()}} &nbsp;({{(stats.currentPosition.pnlPct * 100).toFixed(2)}} %)
+                        </p>
+                    </div>
+                    <div v-else>
+                        <p class="stats">None</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="out/bundle.js"></script>
+</body>
+
+</html>

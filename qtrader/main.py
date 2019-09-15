@@ -21,7 +21,9 @@ if __name__ == "__main__":
         batch_size=32,
         max_memory=10000,
         save_cnt=1000,
-        model_path='models'
+        model_path='models',
+        hub_address='localhost',
+        hub_port=5001
     )
 
     agent.train(
@@ -29,6 +31,6 @@ if __name__ == "__main__":
         max_eps=0.1,
         min_eps=1e-3,
         decay=1e-4,
-        gamma=0.5,
+        gamma=0.9,
         learning_rate=1e-4
     )

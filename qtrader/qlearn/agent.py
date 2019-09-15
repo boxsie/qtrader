@@ -4,9 +4,10 @@ import tensorflow as tf
 from .model import Model
 from .memory import Memory
 from .trainer import Trainer
+from .client import Client
 
 class Agent:
-    def __init__(self, name, num_states, num_actions, batch_size, max_memory, save_cnt, model_path):
+    def __init__(self, name, num_states, num_actions, batch_size, max_memory, save_cnt, model_path, hub_address, hub_port):
         self._name = name
         self._batch_size = batch_size
         self._save_cnt = save_cnt
@@ -20,6 +21,9 @@ class Agent:
         if not os.path.exists(self._full_path):
             os.mkdir(self._full_path)
 
+        self._client = Client(hub_address, hub_port)
+        self._client.start()
+
     def train(self, broker, max_eps=1.0, min_eps=0.1, decay=0.1, gamma=0.5, learning_rate=1e-3):
         cnt = 0
         with tf.compat.v1.Session() as sess:
@@ -31,7 +35,11 @@ class Agent:
                 self.load_model(sess, self._name)
 
             while True:
-                if trainer.train():
+                is_complete, state, reward, stats = trainer.train()
+
+                self._client.send_update(state.tolist(), reward, stats)
+
+                if is_complete:
                     break
                 cnt += 1
 

@@ -1,16 +1,13 @@
 import math
 import pandas as pd
 import numpy as np
-import json
 
-from client import Client
 from position import Position
 import indicators
 
-
 class Broker:
     def __init__(self, ticker, starting_balance, trade_pct, fee_pct, tick_size):
-        self.num_states = 8
+        self.num_states = 4
         self.num_actions = 4
         self._ticker = ticker
         self._starting_balance = starting_balance
@@ -18,9 +15,6 @@ class Broker:
         self._fee_pct = fee_pct
         self._tick_size = tick_size
         self.reset()
-
-        self._connect = Client('localhost', 5000)
-        self._connect.start()
 
     def reset(self):
         self._position = None
@@ -41,36 +35,17 @@ class Broker:
         elif action == 0: # 2=HOLD
             self._hold(price)
 
-        self._previous_closes.append(math.log(price))
+        self._previous_closes.append(price)
         self._last_tick = self._ticker.get_next(groups=self._tick_size)
-        self._current_reward += ((self._balance - self._starting_balance) / self._starting_balance)
 
         is_complete = len(self._last_tick) == 0
         reward = self._current_reward
         state = None if is_complete else self.get_state(price)
+        stats = self.get_stats(price)
 
         self._current_reward = 0
 
-        profits = [i.profit for i in self._closed_trades]
-        pcts = [i.current_profit_pct(i.close) for i in self._closed_trades]
-        current_pct = self._position.current_profit_pct(price) if self._position else 0
-
-        avg_profit = sum(pcts) / len(pcts) if len(pcts) > 0 else 0
-        max_profit = max(profits) if len(profits) > 0 else 0
-        min_profit = min(profits) if len(profits) > 0 else 0
-        pos = f'{self._position.buy_sell.upper()}:{self._position.quantity:,.2f}@{self._position.open:,.2f}' if self._position else 'None     '
-
-        self._connect.send_message(json.dumps({
-            'maxWin': max_profit,
-            'maxLoss': min_profit,
-            'avgProfitPct': avg_profit,
-            'balance': self._balance,
-            'currentPosition': pos,
-            'positionPnlPct': current_pct,
-            'currentPrice': price
-        }))
-
-        return is_complete, state, reward
+        return is_complete, state, reward, stats
 
     def get_state(self, price):
         pos_buy_sell = 0
@@ -81,20 +56,42 @@ class Broker:
             pos_profit = self._position.current_profit_pct(price)
 
         return np.array([
-            self._balance / self._starting_balance,
             pos_buy_sell,
             pos_profit,
-            self._get_ema(5),
-            self._get_ema(10),
-            self._get_ema(20),
-            self._get_ema(50),
-            self._get_ema(100)
+            self._get_sma(50),
+            self._get_sma(100)
         ])
 
-    def _get_ema(self, period):
+    def get_stats(self, price):
+        profits = [i.profit for i in self._closed_trades]
+        pcts = [i.current_profit_pct(i.close) for i in self._closed_trades]
+
+        avg_profit = sum(pcts) / len(pcts) if len(pcts) > 0 else 0
+        max_profit = max(profits) if len(profits) > 0 else 0
+        min_profit = min(profits) if len(profits) > 0 else 0
+
+        current_pct = self._position.current_profit_pct(price) if self._position else 0
+
+        currentPos = {
+            'pos': self._position.buy_sell,
+            'open': self._position.open,
+            'quantity': self._position.quantity,
+            'pnlPct': current_pct
+        } if self._position else None
+
+        return {
+            'maxWin': max_profit,
+            'maxLoss': min_profit,
+            'avgProfitPct': avg_profit,
+            'balance': self._balance,
+            'currentPosition': currentPos,
+            'currentPrice': price
+        }
+
+    def _get_sma(self, period):
         df = pd.Series(self._previous_closes)
-        ema = pd.Series.ewm(df[::-1], span=period).mean()
-        return ema.iloc[-1]
+        sma = df.rolling(window=period).mean()
+        return sma.iloc[-1]
 
     def _trade(self, quantity, price, buy_sell):
         if self._position:
@@ -116,7 +113,7 @@ class Broker:
         self._balance += self._position.revenue
         self._closed_trades.append(self._position)
 
-        self._current_reward += -0.1 + self._position.current_profit_pct(price) if self._position.profit > 0 else -1
+        self._current_reward += self._position.current_profit_pct(price) * 10.0
 
         col = ''
         col_end = '\033[0m'
@@ -132,4 +129,4 @@ class Broker:
         if not self._position:
             return
 
-        self._current_reward += self._position.current_profit_pct(price) * 0.1
+        self._current_reward += self._position.current_profit_pct(price)
