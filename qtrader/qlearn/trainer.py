@@ -18,7 +18,6 @@ class Trainer:
         self._eps = self._max_eps
         self._steps = 0
         self._reward_store = []
-        self._total_reward = 0
 
     def train(self):
         action = self._choose_action(self._state) if self._state.any() else 0
@@ -34,10 +33,7 @@ class Trainer:
             self._eps = self._min_eps + (self._max_eps - self._min_eps) * math.exp(-self._decay * self._steps)
 
             self._state = next_state
-            self._total_reward += reward
-
-            if is_complete:
-                self._reward_store.append(self._total_reward)
+            self._reward_store.append(reward)
 
         return is_complete, self._state, reward, stats
 

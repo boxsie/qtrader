@@ -16,9 +16,7 @@ class TickerLocal:
         rows = self._data.iloc[self._idx:self._idx + groups]
 
         if not rows.iloc[-1].isnull().values.any():
-            self.last_tick = {
-                'Close': rows.iloc[-1]['Close']
-            }
+            self.last_tick = rows.iloc[-1]
 
         self._idx += groups
         return self.last_tick

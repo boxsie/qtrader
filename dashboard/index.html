@@ -8,16 +8,11 @@
 
 <body>
     <div id="main">
-        <nav class="navbar navbar-light bg-light">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">QTrader</span>
-            </div>
-        </nav>
         <div class="mt-5 container-fluid">
             <div class="row">
                 <div class="col-3 text-center">
                     <h5>BALANCE</h5>
-                    <p class="stats">${{stats.balance.toFixed(2).toLocaleString()}}</p>
+                    <p class="stats">${{parseFloat(stats.balance.toFixed(2)).toLocaleString()}}</p>
                 </div>
                 <div class="col-3 text-center">
                     <h5>AVG PROFIT %</h5>
@@ -34,7 +29,7 @@
             </div>
             <div class="row mt-5">
                 <div class="col-10">
-                    <canvas id="priceChart" ref="priceChart" height="200"></canvas>
+                    <canvas id="priceChart" ref="priceChart" height="120"></canvas>
                 </div>
                 <div class="col-2">
                     <h5 class="mt-4 mb-3">PRICE</h5>
@@ -45,16 +40,44 @@
                             {{stats.currentPosition.pos.toUpperCase()}}
                         </p>
                         <p class="stats">
-                            {{stats.currentPosition.quantity.toFixed(2)}} @ &nbsp;$ {{stats.currentPosition.open.toFixed(2).toLocaleString()}}
+                            {{stats.currentPosition.quantity.toFixed(2)}} @ &nbsp;$ {{parseFloat(stats.currentPosition.open.toFixed(2)).toLocaleString()}}
                         </p>
                         <p class="stats" :class="stats.currentPosition.pnlPct >= 0 ? 'buy' : 'sell'">
-                            $ {{(stats.currentPosition.quantity * stats.currentPrice).toFixed(2).toLocaleString()}} &nbsp;({{(stats.currentPosition.pnlPct * 100).toFixed(2)}} %)
+                            $ {{parseFloat((stats.currentPosition.quantity * stats.currentPrice).toFixed(2)).toLocaleString()}} &nbsp;({{(stats.currentPosition.pnlPct * 100).toFixed(2)}} %)
                         </p>
                     </div>
                     <div v-else>
                         <p class="stats">None</p>
                     </div>
                 </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-10">
+                    <canvas id="stateChart" ref="stateChart" height="80"></canvas>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <h2>TRADES</h2>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Quantity</th>
+                            <th>Open</th>
+                            <th>Close</th>
+                            <th>Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="trade in trades">
+                            <td>{{trade.pos.toUpperCase()}}</td>
+                            <td>{{trade.quantity}}</td>
+                            <td>{{trade.open}}</td>
+                            <td>{{trade.close}}</td>
+                            <td>{{trade.profit}}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

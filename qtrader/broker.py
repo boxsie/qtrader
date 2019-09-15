@@ -1,14 +1,9 @@
-import math
-import pandas as pd
-import numpy as np
-
 from position import Position
-import indicators
+from trader import Trader
 
 class Broker:
     def __init__(self, ticker, starting_balance, trade_pct, fee_pct, tick_size):
-        self.num_states = 4
-        self.num_actions = 4
+        self._trader = Trader()
         self._ticker = ticker
         self._starting_balance = starting_balance
         self._trade_pct = trade_pct
@@ -16,15 +11,19 @@ class Broker:
         self._tick_size = tick_size
         self.reset()
 
+        self.num_states = self._trader.num_states
+        self.num_actions = 4
+
     def reset(self):
         self._position = None
         self._balance = self._starting_balance
         self._closed_trades = []
         self._last_tick = self._ticker.last_tick
         self._current_reward = 0
-        self._previous_closes = []
 
     def update(self, action):
+        self._current_reward = 0
+
         price = self._last_tick['Close']
 
         if action > 1: # 2=BUY 3=SELL
@@ -35,32 +34,14 @@ class Broker:
         elif action == 0: # 2=HOLD
             self._hold(price)
 
-        self._previous_closes.append(price)
         self._last_tick = self._ticker.get_next(groups=self._tick_size)
 
-        is_complete = len(self._last_tick) == 0
-        reward = self._current_reward
-        state = None if is_complete else self.get_state(price)
+        is_complete = not self._last_tick.any()
+        state = None if is_complete else self._trader.get_state(price, self._position, self._last_tick)
         stats = self.get_stats(price)
 
-        self._current_reward = 0
 
-        return is_complete, state, reward, stats
-
-    def get_state(self, price):
-        pos_buy_sell = 0
-        pos_profit = 0
-
-        if self._position:
-            pos_buy_sell = 1 if self._position.buy_sell == 'buy' else -1
-            pos_profit = self._position.current_profit_pct(price)
-
-        return np.array([
-            pos_buy_sell,
-            pos_profit,
-            self._get_sma(50),
-            self._get_sma(100)
-        ])
+        return is_complete, state, self._current_reward, stats
 
     def get_stats(self, price):
         profits = [i.profit for i in self._closed_trades]
@@ -88,45 +69,42 @@ class Broker:
             'currentPrice': price
         }
 
-    def _get_sma(self, period):
-        df = pd.Series(self._previous_closes)
-        sma = df.rolling(window=period).mean()
-        return sma.iloc[-1]
-
     def _trade(self, quantity, price, buy_sell):
         if self._position:
-            if self._position.buy_sell == buy_sell:
-                self._current_reward -= 1.0
-                return
-            else:
+            if self._position.buy_sell != buy_sell:
                 self._close(price)
+            else:
+                return
 
         self._position = Position(quantity, price, buy_sell, self._fee_pct)
         self._balance -= self._position.cost
 
     def _close(self, price):
         if not self._position:
-            self._current_reward -= 1.0
+            self._current_reward = -1.0
             return
+
+        self._current_reward = self._position.current_profit_pct(price) * 10.0
 
         self._position.close_position(price)
         self._balance += self._position.revenue
         self._closed_trades.append(self._position)
-
-        self._current_reward += self._position.current_profit_pct(price) * 10.0
-
-        col = ''
-        col_end = '\033[0m'
-        if self._position.profit > 0:
-            col = '\033[92m'
-        elif self._position.profit < 0:
-            col = '\033[91m'
-        print(f'Closed trade {self._position.buy_sell.upper()}:{self._position.quantity:,.2f}@{price:,.2f} {col}{self._position.profit:,.2f}({self._position.current_profit_pct(price) * 100:,.2f}%){col_end}                                                                                                        ')
-
         self._position = None
 
     def _hold(self, price):
         if not self._position:
             return
 
-        self._current_reward += self._position.current_profit_pct(price)
+        profitPct = self._position.current_profit_pct(price)
+
+        if profitPct > 0:
+            if profitPct < 10:
+                self._current_reward = (profitPct * 0.5) if profitPct > 0 else profitPct
+            elif profitPct < 20:
+                self._current_reward = (profitPct * 0.25)
+            elif profitPct < 30:
+                self._current_reward = (profitPct * 0.1)
+            else:
+                self._current_reward = 0
+        else:
+            self._current_reward = profitPct * 10.0

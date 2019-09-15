@@ -59,7 +59,6 @@ class Agent:
             gamma=gamma)
 
     def save_model(self, sess, model_name):
-        print('')
         self._model.save(sess, self._full_path, model_name)
         self._memory.save(self._full_path, model_name)
 

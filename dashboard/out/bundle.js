@@ -42,9 +42,11 @@ var vm = new _vue["default"]({
     state: [],
     reward: 0,
     priceChart: null,
-    priceChartUpdateRate: 15,
-    priceChartCurrentMins: 0,
-    priceChartMaxTicks: 100
+    stateChart: null,
+    chartUpdateRate: 1,
+    chartCurrentMins: 0,
+    chartMaxTicks: 100,
+    trades: []
   },
   methods: {
     onMessage: function onMessage(msg) {
@@ -63,28 +65,51 @@ var vm = new _vue["default"]({
     parseLatestUpdate: function parseLatestUpdate(data) {
       var _this = this;
 
-      this.priceChartCurrentMins++;
+      this.chartCurrentMins++;
 
-      if (this.priceChartCurrentMins % this.priceChartUpdateRate === 0) {
-        this.priceChartCurrentMins = 0;
-        this.priceChart.data.labels.push(this.priceChartUpdateRate);
+      if (this.chartCurrentMins % this.chartUpdateRate === 0) {
+        this.chartCurrentMins = 0;
+        this.priceChart.data.labels.push(this.chartUpdateRate);
+        this.stateChart.data.labels.push(this.chartUpdateRate);
 
-        if (this.priceChart.data.labels.length > this.priceChartMaxTicks) {
+        if (this.priceChart.data.labels.length > this.chartMaxTicks) {
           this.priceChart.data.labels.splice(0, 1);
+        }
+
+        if (this.stateChart.data.labels.length > this.chartMaxTicks) {
+          this.stateChart.data.labels.splice(0, 1);
         }
 
         this.updateStats(data.stats);
         this.updateState(data.state, data.reward);
         this.priceChart.data.datasets.forEach(function (dataset) {
-          if (dataset.data.length > _this.priceChartMaxTicks) {
+          if (dataset.data.length > _this.chartMaxTicks) {
+            dataset.data.splice(0, 1);
+          }
+        });
+        this.stateChart.data.datasets.forEach(function (dataset) {
+          if (dataset.data.length > _this.chartMaxTicks) {
             dataset.data.splice(0, 1);
           }
         });
         this.priceChart.update();
+        this.stateChart.update();
       }
     },
     updateStats: function updateStats(stats) {
+      var oldPos = this.stats.currentPosition;
       this.stats = stats;
+
+      if (oldPos && (!this.stats.currentPosition || this.stats.currentPosition.pos != oldPos.pos)) {
+        var trade = oldPos;
+        trade.close = this.stats.currentPrice;
+        trade.profit = this.calculateProfit(oldPos, this.stats.currentPrice);
+        this.trades.unshift(trade);
+
+        if (this.trades.length > 100) {
+          this.trades.pop();
+        }
+      }
 
       if (this.stats.currentPosition) {
         if (this.stats.currentPosition.pos == 'buy') {
@@ -104,9 +129,21 @@ var vm = new _vue["default"]({
     updateState: function updateState(state, reward) {
       this.state = state;
       this.reward = reward;
-      this.priceChart.data.datasets[3].data.push(this.state[2]);
-      this.priceChart.data.datasets[4].data.push(this.state[3]);
-      this.priceChart.data.datasets[5].data.push(this.reward);
+      this.stateChart.data.datasets[0].data.push(this.state[2]);
+      this.stateChart.data.datasets[1].data.push(this.state[3]);
+      this.stateChart.data.datasets[2].data.push(this.state[4]);
+      this.priceChart.data.datasets[3].data.push(this.reward);
+    },
+    calculateProfit: function calculateProfit(pos, price) {
+      var profit = 0;
+
+      if (pos.pos == 'buy') {
+        profit = pos.quantity * price - pos.quantity * pos.open;
+      } else if (pos.pos == 'sell') {
+        profit = pos.quantity * pos.open - pos.quantity * price;
+      }
+
+      return profit - pos.quantity * pos.open * 0.015;
     }
   },
   mounted: function mounted() {
@@ -132,25 +169,9 @@ var vm = new _vue["default"]({
           yAxisID: 'y-axis-1'
         }, {
           label: 'Price ($)',
-          backgroundColor: chartColours.yellow,
-          borderColor: chartColours.yellow,
-          borderWidth: 1,
-          data: [],
-          fill: false,
-          yAxisID: 'y-axis-1'
-        }, {
-          label: 'EMA 50 ($)',
           backgroundColor: chartColours.blue,
           borderColor: chartColours.blue,
-          borderWidth: 1,
-          data: [],
-          fill: false,
-          yAxisID: 'y-axis-1'
-        }, {
-          label: 'EMA 100 ($)',
-          backgroundColor: chartColours.purple,
-          borderColor: chartColours.purple,
-          borderWidth: 1,
+          borderWidth: 2,
           data: [],
           fill: false,
           yAxisID: 'y-axis-1'
@@ -167,13 +188,19 @@ var vm = new _vue["default"]({
       options: {
         spanGaps: false,
         scales: {
+          xAxes: [{
+            display: false,
+            ticks: {
+              display: false
+            }
+          }],
           yAxes: [{
             display: true,
             position: 'left',
             id: 'y-axis-1',
             scaleLabel: {
               display: true,
-              labelString: 'Value'
+              labelString: 'Price ($)'
             }
           }, {
             display: true,
@@ -181,7 +208,70 @@ var vm = new _vue["default"]({
             id: 'y-axis-2',
             scaleLabel: {
               display: true,
-              labelString: 'Value'
+              labelString: 'Reward'
+            }
+          }]
+        },
+        elements: {
+          point: {
+            radius: 0
+          }
+        }
+      }
+    });
+    this.stateChart = new _chart["default"](this.$refs.stateChart, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: 'RSI',
+          backgroundColor: chartColours.red,
+          borderColor: chartColours.red,
+          borderWidth: 1,
+          data: [],
+          fill: false,
+          yAxisID: 'y-axis-1'
+        }, {
+          label: 'ATR',
+          backgroundColor: chartColours.purple,
+          borderColor: chartColours.purple,
+          borderWidth: 1,
+          data: [],
+          fill: false,
+          yAxisID: 'y-axis-2'
+        }, {
+          label: 'AO',
+          backgroundColor: chartColours.green,
+          borderColor: chartColours.green,
+          borderWidth: 1,
+          data: [],
+          fill: false,
+          yAxisID: 'y-axis-1'
+        }]
+      },
+      options: {
+        spanGaps: false,
+        scales: {
+          xAxes: [{
+            display: false,
+            ticks: {
+              display: false
+            }
+          }],
+          yAxes: [{
+            display: true,
+            position: 'left',
+            id: 'y-axis-1',
+            scaleLabel: {
+              display: true,
+              labelString: 'RSI'
+            }
+          }, {
+            display: true,
+            position: 'right',
+            id: 'y-axis-2',
+            scaleLabel: {
+              display: true,
+              labelString: ''
             }
           }]
         },
