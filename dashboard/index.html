@@ -70,11 +70,11 @@
                     </thead>
                     <tbody>
                         <tr v-for="trade in trades">
-                            <td>{{trade.pos.toUpperCase()}}</td>
-                            <td>{{trade.quantity}}</td>
-                            <td>{{trade.open}}</td>
-                            <td>{{trade.close}}</td>
-                            <td>{{trade.profit}}</td>
+                            <td :class="trade.pos">{{trade.pos.toUpperCase()}}</td>
+                            <td>{{trade.quantity.toFixed(2)}}</td>
+                            <td>$ {{trade.open}}</td>
+                            <td>$ {{trade.close}}</td>
+                            <td :class="trade.profit >= 0 ? 'buy' : 'sell'">$ {{parseFloat(trade.profit.toFixed(2)).toLocaleString()}}</td>
                         </tr>
                     </tbody>
                 </table>

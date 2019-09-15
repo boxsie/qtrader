@@ -26,11 +26,17 @@ if __name__ == "__main__":
         hub_port=5001
     )
 
-    agent.train(
-        broker,
-        max_eps=0.1,
-        min_eps=1e-3,
-        decay=1e-3,
-        gamma=0.85,
-        learning_rate=1e-4
-    )
+    learning_rate = 1e-3
+    while True:
+        agent.train(
+            broker,
+            max_eps=0.1,
+            min_eps=1e-3,
+            decay=1e-3,
+            gamma=0.9,
+            learning_rate=learning_rate
+        )
+
+        ticker.reset()
+        broker.reset()
+        learning_rate *= 0.1

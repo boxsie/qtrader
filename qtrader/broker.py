@@ -3,7 +3,7 @@ from trader import Trader
 
 class Broker:
     def __init__(self, ticker, starting_balance, trade_pct, fee_pct, tick_size):
-        self._trader = Trader()
+        self._trader = Trader(starting_balance)
         self._ticker = ticker
         self._starting_balance = starting_balance
         self._trade_pct = trade_pct
@@ -23,8 +23,13 @@ class Broker:
 
     def update(self, action):
         self._current_reward = 0
+        self._last_tick = self._ticker.get_next(groups=self._tick_size)
+
+        if self._balance < 1 or not self._last_tick.any():
+            return True, None, 0, None
 
         price = self._last_tick['Close']
+        stats = self.get_stats(price)
 
         if action > 1: # 2=BUY 3=SELL
             quantity = (1 / price) * (self._trade_pct * self._balance)
@@ -34,14 +39,10 @@ class Broker:
         elif action == 0: # 2=HOLD
             self._hold(price)
 
-        self._last_tick = self._ticker.get_next(groups=self._tick_size)
+        reward = self._current_reward + (1 - (self._balance / self._starting_balance))
+        state = self._trader.get_state(price, self._position, self._last_tick, self._balance)
 
-        is_complete = not self._last_tick.any()
-        state = None if is_complete else self._trader.get_state(price, self._position, self._last_tick)
-        stats = self.get_stats(price)
-
-
-        return is_complete, state, self._current_reward, stats
+        return False, state, self._current_reward, stats
 
     def get_stats(self, price):
         profits = [i.profit for i in self._closed_trades]
@@ -97,14 +98,7 @@ class Broker:
 
         profitPct = self._position.current_profit_pct(price)
 
-        if profitPct > 0:
-            if profitPct < 10:
-                self._current_reward = (profitPct * 0.5) if profitPct > 0 else profitPct
-            elif profitPct < 20:
-                self._current_reward = (profitPct * 0.25)
-            elif profitPct < 30:
-                self._current_reward = (profitPct * 0.1)
-            else:
-                self._current_reward = 0
+        if profitPct < 0.1:
+            self._current_reward = profitPct * 5.0
         else:
-            self._current_reward = profitPct * 10.0
+            self._current_reward = profitPct

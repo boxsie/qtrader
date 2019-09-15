@@ -4,11 +4,12 @@ import pandas as pd
 import numpy as np
 
 class Trader:
-    def __init__(self):
-        self.num_states = 5
+    def __init__(self, starting_balance):
+        self.num_states = 6
+        self._starting_balance = starting_balance
         self._previous_candles = pd.DataFrame()
 
-    def get_state(self, price, position, last_tick):
+    def get_state(self, price, position, last_tick, balance):
         self._previous_candles = self._previous_candles.append(last_tick, ignore_index=True)
 
         if self._previous_candles.shape[0] > 1000:
@@ -33,6 +34,7 @@ class Trader:
         ao = ao * 0.1
 
         return np.array([
+            balance / self._starting_balance,
             pos_buy_sell,
             pos_profit,
             rsi,
