@@ -19,7 +19,7 @@ if __name__ == "__main__":
         num_states=broker.num_states,
         num_actions=broker.num_actions,
         batch_size=64,
-        max_memory=10000,
+        max_memory=100000,
         save_cnt=1000,
         model_path='models',
         hub_address='localhost',
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         agent.train(
             broker,
             max_eps=0.1,
-            min_eps=1e-3,
+            min_eps=1e-4,
             decay=1e-3,
             gamma=0.9,
             learning_rate=learning_rate

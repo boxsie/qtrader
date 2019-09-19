@@ -3,14 +3,16 @@ from trader import Trader
 
 class Broker:
     def __init__(self, ticker, starting_balance, trade_pct, fee_pct, tick_size):
-        self._trader = Trader(starting_balance)
         self._ticker = ticker
+        self._tick_size = tick_size
         self._starting_balance = starting_balance
         self._trade_pct = trade_pct
         self._fee_pct = fee_pct
-        self._tick_size = tick_size
         self.reset()
 
+        self._ticks_per_state = 14
+        starting_ticks = self._ticker.get_bulk(self._ticks_per_state, groups=self._tick_size)
+        self._trader = Trader(starting_ticks)
         self.num_states = self._trader.num_states
         self.num_actions = 4
 
@@ -23,13 +25,12 @@ class Broker:
 
     def update(self, action):
         self._current_reward = 0
-        self._last_tick = self._ticker.get_next(groups=self._tick_size)
-
-        if self._balance < 1 or not self._last_tick.any():
-            return True, None, 0, None
+        self._last_tick, is_complete = self._ticker.get_next(groups=self._tick_size)
 
         price = self._last_tick['Close']
-        stats = self.get_stats(price)
+
+        if self._balance < 1 or is_complete:
+            return True, None, 0, None
 
         if action > 1: # 2=BUY 3=SELL
             quantity = (1 / price) * (self._trade_pct * self._balance)
@@ -39,8 +40,8 @@ class Broker:
         elif action == 0: # 2=HOLD
             self._hold(price)
 
-        reward = self._current_reward + (1 - (self._balance / self._starting_balance))
-        state = self._trader.get_state(price, self._position, self._last_tick, self._balance)
+        state = self._trader.get_state(self._position, self._last_tick)
+        stats = self.get_stats(price)
 
         return False, state, self._current_reward, stats
 
@@ -85,7 +86,7 @@ class Broker:
             self._current_reward = -1.0
             return
 
-        self._current_reward = self._position.current_profit_pct(price) * 10.0
+        self._current_reward = self._position.current_profit_pct(price) * 100.0
 
         self._position.close_position(price)
         self._balance += self._position.revenue
@@ -96,9 +97,6 @@ class Broker:
         if not self._position:
             return
 
-        profitPct = self._position.current_profit_pct(price)
+        profitPct = self._position.current_profit_pct(price) * 5.0
 
-        if profitPct < 0.1:
-            self._current_reward = profitPct * 5.0
-        else:
-            self._current_reward = profitPct
+        self._current_reward = profitPct

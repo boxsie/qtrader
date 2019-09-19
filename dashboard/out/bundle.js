@@ -65,42 +65,38 @@ var vm = new _vue["default"]({
     parseLatestUpdate: function parseLatestUpdate(data) {
       var _this = this;
 
-      this.chartCurrentMins++;
+      this.priceChart.data.labels.push(this.chartUpdateRate);
+      this.stateChart.data.labels.push(this.chartUpdateRate);
+      this.updateStats(data.stats);
+      this.updateState(data.state, data.reward);
 
-      if (this.chartCurrentMins % this.chartUpdateRate === 0) {
-        this.chartCurrentMins = 0;
-        this.priceChart.data.labels.push(this.chartUpdateRate);
-        this.stateChart.data.labels.push(this.chartUpdateRate);
-
-        if (this.priceChart.data.labels.length > this.chartMaxTicks) {
-          this.priceChart.data.labels.splice(0, 1);
-        }
-
-        if (this.stateChart.data.labels.length > this.chartMaxTicks) {
-          this.stateChart.data.labels.splice(0, 1);
-        }
-
-        this.updateStats(data.stats);
-        this.updateState(data.state, data.reward);
-        this.priceChart.data.datasets.forEach(function (dataset) {
-          if (dataset.data.length > _this.chartMaxTicks) {
-            dataset.data.splice(0, 1);
-          }
-        });
-        this.stateChart.data.datasets.forEach(function (dataset) {
-          if (dataset.data.length > _this.chartMaxTicks) {
-            dataset.data.splice(0, 1);
-          }
-        });
-        this.priceChart.update();
-        this.stateChart.update();
+      if (this.priceChart.data.labels.length > this.chartMaxTicks) {
+        this.priceChart.data.labels.splice(0, 1);
       }
+
+      if (this.stateChart.data.labels.length > this.chartMaxTicks) {
+        this.stateChart.data.labels.splice(0, 1);
+      }
+
+      this.priceChart.data.datasets.forEach(function (dataset) {
+        if (dataset.data.length > _this.chartMaxTicks) {
+          dataset.data.splice(0, 1);
+        }
+      });
+      this.stateChart.data.datasets.forEach(function (dataset) {
+        if (dataset.data.length > _this.chartMaxTicks) {
+          dataset.data.splice(0, 1);
+        }
+      });
+      this.priceChart.update();
+      this.stateChart.update();
     },
     updateStats: function updateStats(stats) {
       var oldPos = this.stats.currentPosition;
       this.stats = stats;
+      this.priceChart.data.datasets[2].data.push(this.stats.currentPrice);
 
-      if (oldPos && (!this.stats.currentPosition || this.stats.currentPosition.pos != oldPos.pos)) {
+      if (oldPos && !this.stats.currentPosition) {
         var trade = oldPos;
         trade.close = this.stats.currentPrice;
         trade.profit = this.calculateProfit(oldPos, this.stats.currentPrice);
@@ -109,29 +105,34 @@ var vm = new _vue["default"]({
         if (this.trades.length > 100) {
           this.trades.pop();
         }
+
+        this.stats.currentPosition = null;
       }
+
+      var ds_buy = this.priceChart.data.datasets[0].data;
+      var ds_sell = this.priceChart.data.datasets[1].data;
 
       if (this.stats.currentPosition) {
         if (this.stats.currentPosition.pos == 'buy') {
-          this.priceChart.data.datasets[0].data.push(this.stats.currentPosition.open);
-          this.priceChart.data.datasets[1].data.push(null);
+          ds_buy.push(this.stats.currentPosition.open);
+          ds_sell.push(null);
         } else {
-          this.priceChart.data.datasets[0].data.push(null);
-          this.priceChart.data.datasets[1].data.push(this.stats.currentPosition.open);
+          ds_buy.push(null);
+          ds_sell.push(this.stats.currentPosition.open);
         }
       } else {
-        this.priceChart.data.datasets[0].data.push(null);
-        this.priceChart.data.datasets[1].data.push(null);
+        ds_buy.push(null);
+        ds_sell.push(null);
       }
-
-      this.priceChart.data.datasets[2].data.push(this.stats.currentPrice);
     },
     updateState: function updateState(state, reward) {
       this.state = state;
       this.reward = reward;
-      this.stateChart.data.datasets[0].data.push(this.state[2]);
-      this.stateChart.data.datasets[1].data.push(this.state[3]);
-      this.stateChart.data.datasets[2].data.push(this.state[4]);
+      this.stateChart.data.datasets[0].data.push(this.state[2 + 13]);
+      this.stateChart.data.datasets[1].data.push(this.state[2 + 2 * 13]);
+      this.stateChart.data.datasets[2].data.push(this.state[2 + 3 * 13]);
+      this.stateChart.data.datasets[3].data.push(this.state[2 + 4 * 13]);
+      this.stateChart.data.datasets[4].data.push(this.state[2 + 5 * 13]);
       this.priceChart.data.datasets[3].data.push(this.reward);
     },
     calculateProfit: function calculateProfit(pos, price) {
@@ -158,6 +159,7 @@ var vm = new _vue["default"]({
           borderWidth: 2,
           data: [],
           fill: false,
+          lineTension: 0,
           yAxisID: 'y-axis-1'
         }, {
           label: 'Sell ($)',
@@ -166,6 +168,7 @@ var vm = new _vue["default"]({
           borderWidth: 2,
           data: [],
           fill: false,
+          lineTension: 0,
           yAxisID: 'y-axis-1'
         }, {
           label: 'Price ($)',
@@ -174,6 +177,7 @@ var vm = new _vue["default"]({
           borderWidth: 2,
           data: [],
           fill: false,
+          lineTension: 0,
           yAxisID: 'y-axis-1'
         }, {
           label: 'Reward',
@@ -182,11 +186,11 @@ var vm = new _vue["default"]({
           borderWidth: 2,
           data: [],
           fill: false,
+          lineTension: 0,
           yAxisID: 'y-axis-2'
         }]
       },
       options: {
-        spanGaps: false,
         scales: {
           xAxes: [{
             display: false,
@@ -197,19 +201,11 @@ var vm = new _vue["default"]({
           yAxes: [{
             display: true,
             position: 'left',
-            id: 'y-axis-1',
-            scaleLabel: {
-              display: true,
-              labelString: 'Price ($)'
-            }
+            id: 'y-axis-1'
           }, {
             display: true,
             position: 'right',
-            id: 'y-axis-2',
-            scaleLabel: {
-              display: true,
-              labelString: 'Reward'
-            }
+            id: 'y-axis-2'
           }]
         },
         elements: {
@@ -246,6 +242,22 @@ var vm = new _vue["default"]({
           data: [],
           fill: false,
           yAxisID: 'y-axis-1'
+        }, {
+          label: 'MFI',
+          backgroundColor: chartColours.orange,
+          borderColor: chartColours.orange,
+          borderWidth: 1,
+          data: [],
+          fill: false,
+          yAxisID: 'y-axis-1'
+        }, {
+          label: 'TSI',
+          backgroundColor: chartColours.blue,
+          borderColor: chartColours.blue,
+          borderWidth: 1,
+          data: [],
+          fill: false,
+          yAxisID: 'y-axis-1'
         }]
       },
       options: {
@@ -260,19 +272,11 @@ var vm = new _vue["default"]({
           yAxes: [{
             display: true,
             position: 'left',
-            id: 'y-axis-1',
-            scaleLabel: {
-              display: true,
-              labelString: 'RSI'
-            }
+            id: 'y-axis-1'
           }, {
             display: true,
             position: 'right',
-            id: 'y-axis-2',
-            scaleLabel: {
-              display: true,
-              labelString: ''
-            }
+            id: 'y-axis-2'
           }]
         },
         elements: {
