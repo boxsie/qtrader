@@ -76,6 +76,7 @@ class Broker:
             if self._position.buy_sell != buy_sell:
                 self._close(price)
             else:
+                self._current_reward = self._position.current_profit_pct(price) * 10.0
                 return
 
         self._position = Position(quantity, price, buy_sell, self._fee_pct)
@@ -97,6 +98,4 @@ class Broker:
         if not self._position:
             return
 
-        profitPct = self._position.current_profit_pct(price) * 5.0
-
-        self._current_reward = profitPct
+        self._current_reward = self._position.current_profit_pct(price) * 10.0

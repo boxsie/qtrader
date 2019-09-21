@@ -32,8 +32,8 @@ if __name__ == "__main__":
             broker,
             max_eps=0.1,
             min_eps=1e-4,
-            decay=1e-3,
-            gamma=0.9,
+            decay=1e-4,
+            gamma=0.75,
             learning_rate=learning_rate
         )
 
