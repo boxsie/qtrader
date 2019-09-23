@@ -12,7 +12,7 @@ class Broker:
 
         self._ticks_per_state = 14
         starting_ticks = self._ticker.get_bulk(self._ticks_per_state, groups=self._tick_size)
-        self._trader = Trader(starting_ticks)
+        self._trader = Trader(starting_ticks, self._starting_balance)
         self.num_states = self._trader.num_states
         self.num_actions = 4
 
@@ -40,7 +40,7 @@ class Broker:
         elif action == 0: # 2=HOLD
             self._hold(price)
 
-        state = self._trader.get_state(self._position, self._last_tick)
+        state = self._trader.get_state(self._position, self._last_tick, self._balance)
         stats = self.get_stats(price)
 
         return False, state, self._current_reward, stats
@@ -76,7 +76,7 @@ class Broker:
             if self._position.buy_sell != buy_sell:
                 self._close(price)
             else:
-                self._current_reward = self._position.current_profit_pct(price) * 10.0
+                self._current_reward = -1.0
                 return
 
         self._position = Position(quantity, price, buy_sell, self._fee_pct)
@@ -97,5 +97,3 @@ class Broker:
     def _hold(self, price):
         if not self._position:
             return
-
-        self._current_reward = self._position.current_profit_pct(price) * 10.0

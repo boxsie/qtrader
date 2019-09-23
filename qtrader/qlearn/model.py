@@ -11,10 +11,9 @@ class Model:
         self._saver = None
         self._states = tf.compat.v1.placeholder(shape=[None, self.num_states], dtype=tf.float32)
         self._qsa = tf.compat.v1.placeholder(shape=[None, self.num_actions], dtype=tf.float32)
-        fc1 = tf.layers.dense(self._states, 64, activation=tf.nn.relu)
-        fc2 = tf.layers.dense(fc1, 64, activation=tf.nn.relu)
-        fc3 = tf.layers.dense(fc2, 64, activation=tf.nn.relu)
-        self._logits = tf.layers.dense(fc3, self.num_actions)
+        fc1 = tf.layers.dense(self._states, 32, activation=tf.nn.relu)
+        fc2 = tf.layers.dense(fc1, 32, activation=tf.nn.relu)
+        self._logits = tf.layers.dense(fc2, self.num_actions)
 
     def prepare(self, learning_rate):
         loss = tf.compat.v1.losses.mean_squared_error(self._qsa, self._logits)

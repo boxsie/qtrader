@@ -131,8 +131,6 @@ var vm = new _vue["default"]({
       this.stateChart.data.datasets[0].data.push(this.state[2 + 13]);
       this.stateChart.data.datasets[1].data.push(this.state[2 + 2 * 13]);
       this.stateChart.data.datasets[2].data.push(this.state[2 + 3 * 13]);
-      this.stateChart.data.datasets[3].data.push(this.state[2 + 4 * 13]);
-      this.stateChart.data.datasets[4].data.push(this.state[2 + 5 * 13]);
       this.priceChart.data.datasets[3].data.push(this.reward);
     },
     calculateProfit: function calculateProfit(pos, price) {
@@ -222,22 +220,6 @@ var vm = new _vue["default"]({
           label: 'RSI',
           backgroundColor: chartColours.red,
           borderColor: chartColours.red,
-          borderWidth: 1,
-          data: [],
-          fill: false,
-          yAxisID: 'y-axis-1'
-        }, {
-          label: 'ATR',
-          backgroundColor: chartColours.purple,
-          borderColor: chartColours.purple,
-          borderWidth: 1,
-          data: [],
-          fill: false,
-          yAxisID: 'y-axis-2'
-        }, {
-          label: 'AO',
-          backgroundColor: chartColours.green,
-          borderColor: chartColours.green,
           borderWidth: 1,
           data: [],
           fill: false,

@@ -26,14 +26,14 @@ if __name__ == "__main__":
         hub_port=5001
     )
 
-    learning_rate = 1e-3
+    learning_rate = 1e-4
     while True:
         agent.train(
             broker,
-            max_eps=0.1,
-            min_eps=1e-4,
+            max_eps=0.4,
+            min_eps=1e-2,
             decay=1e-4,
-            gamma=0.75,
+            gamma=0.9,
             learning_rate=learning_rate
         )
 
