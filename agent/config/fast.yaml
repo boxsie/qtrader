@@ -1,0 +1,56 @@
+# FAST ITERATION CONFIG - Quick experimentation and hyperparameter testing
+# Optimized for rapid learning and feedback cycles
+# Use this for: Testing new ideas, tuning hyperparameters, proof of concepts
+
+# Data settings
+data:
+  data_file: "../data/btcusd_1-min_data.csv"
+  use_recent_data: true
+  recent_data_rows: 200000 # 200k rows = ~4 months diverse data (was 50k)
+  random_start: true # Randomize start position - prevents overfitting
+  episode_length: 300 # 300 steps per episode
+
+# Trading settings (generic defaults)
+trading:
+  starting_balance: 1000.0
+  fee_pct: 0.0015
+  slippage:
+    enabled: true
+    params:
+      base_slippage_bps: 5.0    # 0.05% base spread
+      impact_factor: 10.0        # Market impact multiplier
+      volatility_factor: 2.0     # Volatility effect
+      max_slippage_bps: 100.0    # Cap at 1%
+
+# Model settings - SMALL for fast training
+model:
+  device: "cuda"
+  hidden_size: 128 # Small network = fast
+  lstm_layers: 2
+  dropout: 0.3
+  learning_rate: 0.0001
+  gamma: 0.99
+  tau: 0.01
+
+# Memory settings
+memory:
+  capacity: 10000 # Smaller memory = less overhead
+  alpha: 0.6
+  beta: 0.4
+  beta_increment: 0.001
+  epsilon: 0.000001
+
+# Training settings - FAST iteration
+training:
+  num_episodes: 50 # Just 50 episodes for quick tests
+  batch_size: 256
+  max_epsilon: 1.0
+  min_epsilon: 0.05
+  epsilon_decay: 0.90 # Faster decay - exploit learned behavior sooner (was 0.95)
+  update_frequency: 4
+  save_frequency: 10
+
+# Evaluation
+evaluation:
+  num_episodes: 5
+  render: false

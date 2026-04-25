@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+.claude/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Training Outputs (generated during training)
+runs/
+*.pt
+*.pth
+*.ckpt
+
+# Data (large files, user-provided)
+data/*.csv
+data/*.parquet
+!data/.gitkeep
+
+# Cache (multi-timeframe ticker cache)
+.cache/
+*.pkl
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Dashboard History
+dashboard/history/
+
+# TensorBoard
+events.out.tfevents.*
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# Extra safety
+data/*.csv.gz
+data/*.parquet
+data/.cache/
+*.onnx
+*.h5
+*.npz
+.env.local
+.envrc

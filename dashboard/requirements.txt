@@ -1,0 +1,8 @@
+# Dashboard server dependencies.
+# Versions pinned with ~= (compatible release): bug-fix updates allowed.
+
+fastapi~=0.110
+uvicorn[standard]~=0.27
+websockets~=12.0
+pydantic~=2.6
+python-multipart~=0.0.9

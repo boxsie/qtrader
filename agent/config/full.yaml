@@ -1,0 +1,69 @@
+# FULL TRAINING CONFIG v2 - Production-scale training with optimized hyperparameters
+# Based on successful fast_iteration patterns, scaled for longer training runs
+# Use this for: Final model training, benchmarking, deployment candidates
+#
+# KEY CHANGES FROM v1 (see full_training_v1.yaml.backup):
+# - Learning rate: 0.00005 -> 0.0001 (2x faster, matches fast_iteration success)
+# - Epsilon decay: 0.995 -> 0.95 (reaches exploitation phase by ep ~60 vs never)
+# - Episode length: 500 -> 300 (sharper reward signals, matches fast_iteration)
+# - Batch size: 512 -> 256 (faster memory cycling)
+# - Update frequency: 8 -> 4 (2x more weight updates)
+# - Memory capacity: 100k -> 50k (faster fill rate, better sampling ratio)
+# - Data: Full dataset -> Recent 500k rows (~1 year, consistent market regime)
+# - Min epsilon: 0.01 -> 0.05 (matches fast_iteration)
+# - Dropout: 0.4 -> 0.3 (less aggressive regularization)
+# - Gamma: 0.995 -> 0.99 (slightly less long-term focus)
+# - Tau: 0.005 -> 0.01 (faster target network sync)
+# - Beta increment: 0.0001 -> 0.001 (10x faster priority annealing)
+#
+# EXPECTED LEARNING CURVE:
+# - Episodes 0-30: Exploration (-5% to -10% ROI)
+# - Episodes 30-60: Learning (-2% to 0% ROI)
+# - Episodes 60-150: Exploitation (0% to +2% ROI)
+# - Episodes 150-250: Optimization (+1% to +3% ROI)
+
+# Data settings
+data:
+  data_file: "../data/btcusd_1-min_data.csv"
+  use_recent_data: true # CHANGED: Was false - now use consistent recent data
+  recent_data_rows: 500000 # ~1 year of data for consistent market regime
+  random_start: true
+  episode_length: 300 # CHANGED: Was 500 - matches fast_iteration success (sharper signals)
+
+# Trading settings
+trading:
+  starting_balance: 10000.0
+  fee_pct: 0.0015
+
+# Model settings - Large network with FASTER learning
+model:
+  device: "cuda"
+  hidden_size: 256 # Keep large for production capacity
+  lstm_layers: 3 # Keep deep for production capacity
+  dropout: 0.3 # CHANGED: Was 0.4 - reduced for faster learning
+  learning_rate: 0.0001 # CHANGED: Was 0.00005 - 2x faster (matches fast_iteration)
+  gamma: 0.99 # CHANGED: Was 0.995 - slightly less long-term
+  tau: 0.01 # CHANGED: Was 0.005 - 2x faster target sync
+
+# Memory settings - Optimized for sampling efficiency
+memory:
+  capacity: 50000 # CHANGED: Was 100k - faster fill, better batch:memory ratio
+  alpha: 0.6
+  beta: 0.4
+  beta_increment: 0.001 # CHANGED: Was 0.0001 - 10x faster annealing
+  epsilon: 0.000001
+
+# Training settings - Aggressive learning schedule
+training:
+  num_episodes: 250
+  batch_size: 256 # CHANGED: Was 512 - matches fast_iteration, faster memory cycling
+  max_epsilon: 1.0
+  min_epsilon: 0.05 # CHANGED: Was 0.01 - matches fast_iteration (5% random at minimum)
+  epsilon_decay: 0.95 # CHANGED: Was 0.995 - MUCH faster (reaches min by ep ~60)
+  update_frequency: 4 # CHANGED: Was 8 - 2x more frequent updates
+  save_frequency: 50
+
+# Evaluation
+evaluation:
+  num_episodes: 20
+  render: false

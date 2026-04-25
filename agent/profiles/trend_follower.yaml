@@ -1,0 +1,57 @@
+# Trend Follower Profile
+#
+# Momentum trader that rides trends.
+# Buys strength, sells weakness. Follows the momentum.
+
+name: Trend Follower
+description: Momentum trader that rides trends by buying strength and selling weakness
+
+# Timeframe weights - favor longer timeframes for trend
+timeframe_weights:
+  1m: 0.1
+  5m: 0.2
+  15m: 0.3
+  1h: 0.4
+
+# Reward configuration - momentum focused
+reward_config:
+  # Strong reward for momentum-aligned trades
+  - type: momentum_alignment
+    weight: 4.0
+    params:
+      lookback: 8
+      alignment_reward: 8.0
+      misalignment_penalty: 3.0
+
+  # Portfolio growth on trend rides
+  - type: portfolio_growth
+    weight: 3.0
+    params:
+      peak_multiplier: 3.0
+
+  # Profit from trends
+  - type: profit_loss
+    weight: 2.0
+    params:
+      profit_multiplier: 15.0
+      loss_multiplier: 3.0
+
+  # Don't overtrade - let trends develop
+  - type: trade_frequency
+    weight: 1.5
+    params:
+      penalty_per_trade: 0.15
+
+  # Larger positions during strong trends
+  - type: position_sizing
+    weight: 1.0
+    params:
+      optimal_position_pct: 0.8  # Aggressive 80%
+      tolerance: 0.2
+      max_penalty: 2.0
+
+  # Drawdown protection for when trends reverse
+  - type: drawdown_penalty
+    weight: 2.0
+    params:
+      penalty_multiplier: 6.0

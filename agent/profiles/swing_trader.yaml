@@ -1,0 +1,36 @@
+# SWING TRADER PROFILE
+# Trading Strategy: Multi-day swings
+# Hold time: Days to weeks
+# Risk tolerance: Higher per trade, lower frequency
+
+name: "swing_trader"
+description: "Captures multi-day swings on 4h-1d timeframes"
+
+# Timeframe focus - what intervals this strategy cares about
+timeframe_weights:
+  1m: 0.00   # Ignore
+  5m: 0.00   # Ignore
+  15m: 0.05  # Minimal - entry timing only
+  30m: 0.10  # Context
+  1h: 0.15   # Context
+  4h: 0.35   # SECONDARY - swing structure
+  1d: 0.35   # PRIMARY - main trend
+
+# Reward configuration - portfolio growth dominant, let winners run
+reward_config:
+  - type: portfolio_growth
+    weight: 3.0
+    params:
+      peak_multiplier: 3.0
+      history_size: 200
+
+  - type: profit_loss
+    weight: 1.0
+    params:
+      profit_multiplier: 8.0
+      loss_multiplier: 2.0
+
+  - type: opportunity_cost
+    weight: 0.2
+    params:
+      lookback: 10

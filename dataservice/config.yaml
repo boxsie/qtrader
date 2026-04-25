@@ -1,0 +1,49 @@
+# QTrader Data Service Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8766
+
+database:
+  url: "sqlite:///storage/dataservice.db"
+
+cache:
+  ttl: 300  # seconds
+  max_size: 1000
+
+data_providers:
+  binance:
+    enabled: true
+    base_url: "https://api.binance.com/api/v3"
+    ws_url: "wss://stream.binance.com:9443/ws"
+    rate_limit: 1200  # requests per minute
+  csv_fallback:
+    enabled: true
+    path: "/app/data"
+
+news_providers:
+  twitter:
+    enabled: false  # Requires API key
+  reddit:
+    enabled: false  # Requires API key
+  web_search:
+    enabled: true
+    provider: "duckduckgo"
+
+sentiment:
+  enabled: false  # Enable when transformers installed
+  model: "ProsusAI/finbert"
+
+llm:
+  provider: "ollama"
+  url: "http://ollama:11434"
+  model: "llama3.1:8b"
+  temperature: 0.7
+  max_tokens: 2048
+
+symbols:
+  default:
+    - "BTCUSDT"
+  aliases:
+    BTC: "BTCUSDT"
+    ETH: "ETHUSDT"

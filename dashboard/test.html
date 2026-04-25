@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .event {
+            border: 1px solid #0f0;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test - QTrader Dashboard</h1>
+    <div id="status">Connecting...</div>
+    <div id="events"></div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8765/ws');
+        const statusEl = document.getElementById('status');
+        const eventsEl = document.getElementById('events');
+
+        ws.onopen = () => {
+            statusEl.textContent = '✓ CONNECTED';
+            statusEl.style.color = '#0f0';
+            console.log('WebSocket connected');
+        };
+
+        ws.onmessage = (event) => {
+            console.log('RAW MESSAGE:', event.data);
+            const message = JSON.parse(event.data);
+            console.log('PARSED:', message);
+
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            eventDiv.innerHTML = `
+                <strong>${new Date().toLocaleTimeString()}</strong><br>
+                Type: ${message.type}<br>
+                Data: <pre>${JSON.stringify(message.data, null, 2)}</pre>
+            `;
+            eventsEl.insertBefore(eventDiv, eventsEl.firstChild);
+        };
+
+        ws.onerror = (error) => {
+            statusEl.textContent = '✗ ERROR';
+            statusEl.style.color = '#f00';
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onclose = () => {
+            statusEl.textContent = '✗ DISCONNECTED';
+            statusEl.style.color = '#f00';
+            console.log('WebSocket closed');
+        };
+    </script>
+</body>
+</html>

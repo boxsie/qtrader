@@ -1,0 +1,49 @@
+# MEDIUM TRAINING CONFIG - Balanced between fast iteration and full training
+# Sweet spot for: Development, validation, moderate-scale experiments
+# Use this for: Testing proven strategies with more data, extended validation runs
+
+# Data settings
+data:
+  data_file: "../data/btcusd_1-min_data.csv"
+  use_recent_data: true
+  recent_data_rows: 350000 # ~7-8 months of data (between fast's 4mo and full's 12mo)
+  random_start: true
+  episode_length: 300 # Keep sharp reward signals
+
+# Trading settings
+trading:
+  starting_balance: 5000.0 # Middle ground between fast (1k) and full (10k)
+  fee_pct: 0.0015
+
+# Model settings - Medium network
+model:
+  device: "cuda"
+  hidden_size: 192 # Between fast (128) and full (256)
+  lstm_layers: 2 # Keep shallow like fast for speed
+  dropout: 0.3
+  learning_rate: 0.0001
+  gamma: 0.99
+  tau: 0.01
+
+# Memory settings
+memory:
+  capacity: 25000 # Between fast (10k) and full (50k)
+  alpha: 0.6
+  beta: 0.4
+  beta_increment: 0.001
+  epsilon: 0.000001
+
+# Training settings - Medium duration
+training:
+  num_episodes: 125 # Between fast (50) and full (250)
+  batch_size: 256
+  max_epsilon: 1.0
+  min_epsilon: 0.05
+  epsilon_decay: 0.92 # Between fast (0.90) and full (0.95) - reaches min by ep ~30
+  update_frequency: 4
+  save_frequency: 25
+
+# Evaluation
+evaluation:
+  num_episodes: 10
+  render: false

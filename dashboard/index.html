@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTrader Dashboard</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-darker: #010409;
+            --bg-card: #161b22;
+            --border-color: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #7d8590;
+            --green: #58a65a;
+            --red: #d17878;
+            --blue: #58a6ff;
+            --yellow: #d29922;
+        }
+
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 13px;
+        }
+
+        .navbar {
+            background-color: var(--bg-dark) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+
+        .card-header {
+            background-color: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 11px 14px;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 14px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+            color: #c9d1d9;
+        }
+
+        .stat-value.positive {
+            color: var(--green);
+        }
+
+        .stat-value.negative {
+            color: var(--red);
+        }
+
+        .stat-value.neutral {
+            color: #c9d1d9;
+        }
+
+        .trade-row strong {
+            color: var(--text-primary);
+        }
+
+        .trade-row small {
+            color: var(--text-primary);
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 11px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .connection-status.connected {
+            background-color: rgba(38, 166, 65, 0.1);
+            color: var(--green);
+        }
+
+        .connection-status.disconnected {
+            background-color: rgba(248, 81, 73, 0.1);
+            color: var(--red);
+        }
+
+        .connection-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .trade-row {
+            padding: 7px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-dark);
+            border-left: 3px solid transparent;
+        }
+
+        .trade-row.buy {
+            border-left-color: var(--green);
+        }
+
+        .trade-row.sell {
+            border-left-color: var(--red);
+        }
+
+        .reward-row {
+            padding: 7px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            background: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            border-left: 3px solid transparent;
+        }
+
+        .reward-row.positive {
+            border-left-color: var(--green);
+        }
+
+        .reward-row.negative {
+            border-left-color: var(--red);
+        }
+
+        .reward-row .component {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            border: none;
+            padding: 8px 12px;
+            font-size: 0.85em;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .nav-tabs .nav-link:hover:not(.active) {
+            color: var(--text-primary);
+            border-color: transparent;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 4px 7px;
+            font-weight: 600;
+        }
+
+        .progress {
+            background-color: var(--bg-dark);
+            height: 7px;
+        }
+
+        .table {
+            color: var(--text-primary);
+        }
+
+        .table-dark {
+            --bs-table-bg: var(--bg-dark);
+            --bs-table-border-color: var(--border-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 270px;
+        }
+
+        .metric-small {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .metric-small strong {
+            color: var(--text-primary);
+        }
+
+        .scrollable-trades {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        .scrollable-trades::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .scrollable-trades::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .scrollable-trades::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        /* Control Panel Styles */
+        .control-panel {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-panel .form-select,
+        .control-panel .form-control {
+            background-color: var(--bg-dark);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .control-panel .form-select:focus,
+        .control-panel .form-control:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+        }
+
+        .control-panel .form-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .btn-start {
+            background-color: var(--green);
+            border-color: var(--green);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background-color: #4a9a4c;
+            border-color: #4a9a4c;
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+        }
+
+        .btn-stop {
+            background-color: var(--red);
+            border-color: var(--red);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background-color: #c06868;
+            border-color: #c06868;
+        }
+
+        .btn-stop:disabled {
+            opacity: 0.5;
+        }
+
+        #agent-status.connected {
+            background-color: rgba(88, 166, 255, 0.1);
+            color: var(--blue);
+        }
+
+        #agent-status.disconnected {
+            background-color: rgba(125, 133, 144, 0.1);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark sticky-top">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                QTrader Dashboard
+                <small class="text-secondary" id="run-info" style="font-size: 0.6em; font-weight: normal;">No active run</small>
+                <small class="text-secondary" id="date-range" style="font-size: 0.6em; font-weight: normal;"></small>
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Agent Connection Status -->
+                <div id="agent-status" class="connection-status disconnected" title="Agent connection status">
+                    <span class="connection-dot" style="background-color: currentColor;"></span>
+                    <span>Agent Offline</span>
+                </div>
+                <!-- Dashboard Connection Status -->
+                <div id="connection-status" class="connection-status disconnected">
+                    <span class="connection-dot" style="background-color: currentColor;"></span>
+                    <span>Disconnected</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Left Column: Portfolio & Training -->
+            <div class="col-md-4">
+                <!-- Training Control Panel -->
+                <div class="card control-panel">
+                    <div class="card-header">
+                        <i class="bi bi-play-circle"></i> Training Control
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Profile</label>
+                                <select id="profile-select" class="form-select form-select-sm">
+                                    <option value="balanced" selected>Balanced</option>
+                                    <option value="scalper">Scalper</option>
+                                    <option value="day_trader">Day Trader</option>
+                                    <option value="swing_trader">Swing Trader</option>
+                                    <option value="risk_averse">Risk Averse</option>
+                                    <option value="contrarian">Contrarian</option>
+                                    <option value="trend_follower">Trend Follower</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Config</label>
+                                <select id="config-select" class="form-select form-select-sm">
+                                    <option value="fast" selected>Fast</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="full">Full</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Episodes (optional override)</label>
+                                <input type="number" id="episodes-input" class="form-control form-control-sm" placeholder="Default from config">
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="start-btn" class="btn btn-start btn-sm flex-grow-1" disabled>
+                                <i class="bi bi-play-fill"></i> Start Training
+                            </button>
+                            <button id="stop-btn" class="btn btn-stop btn-sm flex-grow-1" disabled>
+                                <i class="bi bi-stop-fill"></i> Stop
+                            </button>
+                        </div>
+                        <div id="control-status" class="text-center mt-2" style="font-size: 11px; color: var(--text-secondary);">
+                            Waiting for agent connection...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-wallet2"></i> Portfolio
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-box">
+                            <div class="stat-label">Portfolio Value</div>
+                            <div class="stat-value neutral" id="portfolio-value">$0.00</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="stat-box">
+                                    <div class="stat-label">Cash</div>
+                                    <div class="stat-value neutral" style="font-size: 16px;" id="cash-balance">$0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-box">
+                                    <div class="stat-label">Crypto</div>
+                                    <div class="stat-value neutral" style="font-size: 16px;" id="crypto-value">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-box">
+                            <div class="stat-label">ROI</div>
+                            <div class="stat-value" id="roi">0.00%</div>
+                        </div>
+
+                        <div class="stat-box" id="position-box">
+                            <div class="stat-label">Unrealized P&L</div>
+                            <div class="stat-value neutral" id="unrealized-pnl">$0.00 (0.00%)</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Training Metrics -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-cpu"></i> Training
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-small mb-2">
+                            <strong>Episode:</strong> <span id="current-episode">0</span> / <span id="total-episodes">0</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div id="episode-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="metric-small mb-2">
+                            <strong>Step:</strong> <span id="current-step">0</span> / <span id="total-steps">?</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div id="step-progress" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="metric-small mb-2">
+                            <strong>Epsilon:</strong> <span id="epsilon">0.00</span>
+                        </div>
+                        <div class="metric-small mb-2">
+                            <strong>Loss:</strong> <span id="loss">0.00</span>
+                        </div>
+                        <div class="metric-small mb-2">
+                            <strong>Learning Rate:</strong> <span id="learning-rate">0.00</span>
+                        </div>
+                        <div class="metric-small">
+                            <strong>Memory Size:</strong> <span id="memory-size">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Episode History -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-table"></i> Episode History
+                    </div>
+                    <div class="card-body p-0">
+                        <div style="max-height: 360px; overflow-y: auto;">
+                            <table class="table table-dark table-sm mb-0">
+                                <thead style="position: sticky; top: 0; background-color: var(--bg-dark); z-index: 1;">
+                                    <tr>
+                                        <th style="font-size: 10px; padding: 7px;">Ep</th>
+                                        <th style="font-size: 10px; padding: 7px;">Reward</th>
+                                        <th style="font-size: 10px; padding: 7px;">ROI</th>
+                                        <th style="font-size: 10px; padding: 7px;">Trades</th>
+                                        <th style="font-size: 10px; padding: 7px;">Win%</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="episode-history-table">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-secondary" style="padding: 18px; font-size: 11px;">
+                                            No episodes completed yet
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Column: Charts -->
+            <div class="col-md-5">
+                <!-- Price & Performance Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-currency-bitcoin"></i> Price & Performance
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-box">
+                            <div class="stat-label">Current Price</div>
+                            <div class="stat-value neutral" id="current-price-display" style="font-size: 18px;">$0.00</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="stat-box">
+                                    <div class="stat-label">Trades</div>
+                                    <div class="stat-value neutral" id="num-trades-chart" style="font-size: 14px;">0</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-box">
+                                    <div class="stat-label">Win Rate</div>
+                                    <div class="stat-value neutral" id="win-rate-chart" style="font-size: 14px;">0.00%</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-box">
+                                    <div class="stat-label">Avg Profit</div>
+                                    <div class="stat-value neutral" id="avg-profit-chart" style="font-size: 14px;">$0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-box">
+                                    <div class="stat-label">Fees</div>
+                                    <div class="stat-value neutral" id="total-fees-chart" style="font-size: 14px;">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-graph-up"></i> Price Over Time
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="price-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reward Breakdown Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-lightning-charge"></i> Reward Breakdown
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-box">
+                            <div class="stat-label">Total Reward</div>
+                            <div class="stat-value neutral" id="reward-total" style="font-size: 18px;">0.00</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Portfolio Growth</div>
+                                    <div class="stat-value neutral" id="reward-growth" style="font-size: 14px;">0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Immediate</div>
+                                    <div class="stat-value neutral" id="reward-immediate" style="font-size: 14px;">0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Timing</div>
+                                    <div class="stat-value neutral" id="reward-timing" style="font-size: 14px;">0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rewards Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-graph-up-arrow"></i> Rewards Over Time
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="reward-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Actions & Trades -->
+            <div class="col-md-3">
+                <!-- Current Action & Counts -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-activity"></i> Current Action
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-box">
+                            <div class="stat-label">Current Action</div>
+                            <div class="stat-value neutral" id="current-action" style="font-size: 18px;">HOLD</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Hold</div>
+                                    <div class="stat-value neutral" id="hold-count" style="font-size: 14px;">0 (0%)</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Buy</div>
+                                    <div class="stat-value neutral" id="buy-count" style="font-size: 14px;">0 (0%)</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <div class="stat-label">Sell</div>
+                                    <div class="stat-value neutral" id="sell-count" style="font-size: 14px;">0 (0%)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-graph-up"></i> Actions (Rolling Average)
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 180px;">
+                            <canvas id="actions-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Trades / Rewards Tabbed -->
+                <div class="card">
+                    <div class="card-header p-0">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="trades-tab" data-bs-toggle="tab" data-bs-target="#trades-panel" type="button" role="tab">
+                                    <i class="bi bi-arrow-left-right"></i> Trades
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards-panel" type="button" role="tab">
+                                    <i class="bi bi-trophy"></i> Rewards
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="trades-panel" role="tabpanel">
+                                <div id="trades-list" class="scrollable-trades">
+                                    <div class="text-center text-secondary py-4">
+                                        <small>No trades yet</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="rewards-panel" role="tabpanel">
+                                <div id="rewards-list" class="scrollable-trades">
+                                    <div class="text-center text-secondary py-4">
+                                        <small>No rewards yet</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dashboard Logic -->
+    <script>
+        // WebSocket connection
+        let ws = null;
+        let reconnectInterval = null;
+
+        // Current run tracking
+        let currentRunId = null;
+
+        // Charts
+        let priceChart = null;
+        let rewardChart = null;
+        let actionsChart = null;
+
+        // Data storage
+        const maxDataPoints = 100;
+        const priceData = [];
+        const portfolioData = [];
+        const rewardData = [];
+        const immediateRewardData = [];
+        const timingRewardData = [];
+        const growthRewardData = [];
+        const tradesList = [];
+        const rewardsList = [];  // Reward history for rewards tab
+        const buyMarkers = [];  // Buy trade markers for chart
+        const sellMarkers = [];  // Sell trade markers for chart
+
+        // Action tracking
+        const actionCounts = {hold: 0, buy: 0, sell: 0};
+        let totalActions = 0;
+
+        // Action history for chart (rolling window)
+        const actionHistoryWindow = 50; // Calculate average over last 50 actions
+        const actionHistory = [];
+        const holdRateData = [];
+        const buyRateData = [];
+        const sellRateData = [];
+
+        // Episode history tracking
+        const episodeHistory = [];
+        const maxEpisodeHistory = 50; // Keep last 50 episodes
+
+        // Episode step tracking
+        let maxEpisodeSteps = null;
+
+        // Previous values for change tracking
+        const previousValues = {
+            portfolio_value: null,
+            cash: null,
+            crypto_value: null,
+            roi: null,
+            unrealized_pnl: null,
+            reward_total: null,
+            reward_growth: null,
+            reward_immediate: null,
+            reward_timing: null,
+            current_price: null
+        };
+
+        // Cumulative reward tracking for current episode
+        let cumulativeRewards = {
+            total: 0,
+            portfolio_growth: 0,
+            immediate: 0,
+            timing: 0
+        };
+
+        // Initialize charts
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e6edf3' }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#30363d' },
+                        ticks: { color: '#7d8590' }
+                    },
+                    y: {
+                        grid: { color: '#30363d' },
+                        ticks: { color: '#7d8590' }
+                    }
+                }
+            };
+
+            // Price Chart with dual Y-axis
+            const priceCtx = document.getElementById('price-chart').getContext('2d');
+            priceChart = new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Price',
+                        data: [],
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Portfolio',
+                        data: [],
+                        borderColor: '#d29922',
+                        backgroundColor: 'rgba(210, 153, 34, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Buy',
+                        data: [],
+                        type: 'scatter',
+                        backgroundColor: '#58a65a',
+                        borderColor: '#58a65a',
+                        pointStyle: 'crossRot',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        borderWidth: 3,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Sell',
+                        data: [],
+                        type: 'scatter',
+                        backgroundColor: '#d17878',
+                        borderColor: '#d17878',
+                        pointStyle: 'crossRot',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        borderWidth: 3,
+                        yAxisID: 'y'
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        x: {
+                            grid: { color: '#30363d' },
+                            ticks: { color: '#7d8590' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: '#30363d' },
+                            ticks: { color: '#7d8590' },
+                            title: {
+                                display: true,
+                                text: 'Price',
+                                color: '#58a6ff'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: { color: '#7d8590' },
+                            title: {
+                                display: true,
+                                text: 'Portfolio Value',
+                                color: '#d29922'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Reward Chart - 4 lines for reward breakdown
+            const rewardCtx = document.getElementById('reward-chart').getContext('2d');
+            rewardChart = new Chart(rewardCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Total Reward',
+                        data: [],
+                        borderColor: '#c9d1d9',
+                        backgroundColor: 'rgba(201, 209, 217, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Portfolio Growth',
+                        data: [],
+                        borderColor: '#58a65a',
+                        backgroundColor: 'rgba(88, 166, 90, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Immediate',
+                        data: [],
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Timing',
+                        data: [],
+                        borderColor: '#d29922',
+                        backgroundColor: 'rgba(210, 153, 34, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Actions Chart - rolling average of action types
+            const actionsCtx = document.getElementById('actions-chart').getContext('2d');
+            actionsChart = new Chart(actionsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Hold %',
+                        data: [],
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Buy %',
+                        data: [],
+                        borderColor: '#26a641',
+                        backgroundColor: 'rgba(38, 166, 65, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Sell %',
+                        data: [],
+                        borderColor: '#f85149',
+                        backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            ...chartOptions.scales.y,
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                ...chartOptions.scales.y.ticks,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Connect to WebSocket
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to dashboard');
+                updateConnectionStatus(true);
+                if (reconnectInterval) {
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = null;
+                }
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleEvent(message);
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from dashboard');
+                updateConnectionStatus(false);
+                // Reconnect after 3 seconds
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connect, 3000);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connection-status');
+            if (connected) {
+                statusEl.className = 'connection-status connected';
+                statusEl.innerHTML = '<span class="connection-dot" style="background-color: currentColor;"></span><span>Connected</span>';
+            } else {
+                statusEl.className = 'connection-status disconnected';
+                statusEl.innerHTML = '<span class="connection-dot" style="background-color: currentColor;"></span><span>Disconnected</span>';
+            }
+        }
+
+        // Handle incoming events
+        function handleEvent(event) {
+            console.log('Event:', event.type, event.data);
+
+            switch (event.type) {
+                case 'state_snapshot':
+                    handleStateSnapshot(event.data);
+                    break;
+                case 'episode_start':
+                    handleEpisodeStart(event.data);
+                    break;
+                case 'step_update':
+                    handleStepUpdate(event.data);
+                    break;
+                case 'trade_executed':
+                    handleTradeExecuted(event.data);
+                    break;
+                case 'episode_end':
+                    handleEpisodeEnd(event.data);
+                    break;
+                case 'training_metrics':
+                    handleTrainingMetrics(event.data);
+                    break;
+                case 'system_status':
+                    handleSystemStatus(event.data);
+                    break;
+                case 'agent_status':
+                    handleAgentStatus(event.data);
+                    break;
+            }
+        }
+
+        // Event handlers
+        function handleStateSnapshot(data) {
+            console.log('Received state snapshot:', data);
+
+            // Check if this is a new run - if so, reset everything BEFORE updating display
+            if (data.run_id && currentRunId && currentRunId !== data.run_id) {
+                console.log(`New run detected: ${currentRunId} -> ${data.run_id}, resetting dashboard`);
+                resetDashboard();
+            }
+
+            // Update run and episode info
+            if (data.run_id) {
+                currentRunId = data.run_id;
+                const currentEp = data.current_episode !== null ? data.current_episode : 0;
+                const totalEp = data.total_episodes || 0;
+
+                // Update run info with episode counter
+                const runText = `${data.run_id}`;
+                document.getElementById('run-info').textContent = runText;
+
+                // Update date range and episode info
+                let dateRangeText = '';
+
+                // Try to get date range from various possible locations
+                const stats = data.latest_stats || {};
+                const config = data.config || {};
+
+                if (stats.episode_start_date && stats.episode_end_date) {
+                    // Format dates nicely
+                    try {
+                        const startDate = new Date(stats.episode_start_date);
+                        const endDate = new Date(stats.episode_end_date);
+                        const startStr = startDate.toISOString().split('T')[0];
+                        const endStr = endDate.toISOString().split('T')[0];
+                        dateRangeText = `${startStr} to ${endStr}`;
+                    } catch {
+                        dateRangeText = `${stats.episode_start_date} to ${stats.episode_end_date}`;
+                    }
+                } else if (stats.date_range) {
+                    dateRangeText = stats.date_range;
+                } else if (stats.start_date && stats.end_date) {
+                    dateRangeText = `${stats.start_date} to ${stats.end_date}`;
+                } else if (config.start_date && config.end_date) {
+                    dateRangeText = `${config.start_date} to ${config.end_date}`;
+                }
+
+                // Build the display text
+                let displayText = '';
+                if (dateRangeText) {
+                    displayText = `• ${dateRangeText} • `;
+                } else {
+                    displayText = '• ';
+                }
+                displayText += `Episode ${currentEp}/${totalEp}`;
+
+                document.getElementById('date-range').textContent = displayText;
+
+                // Update training box
+                document.getElementById('current-episode').textContent = currentEp;
+                document.getElementById('total-episodes').textContent = totalEp;
+                updateProgress(currentEp, totalEp);
+
+                console.log(`Updated run/episode display: ${runText}`);
+            } else {
+                currentRunId = null;
+                document.getElementById('run-info').textContent = 'No active run';
+                document.getElementById('date-range').textContent = '';
+                console.log('No run_id in snapshot');
+            }
+
+            // Update stats
+            if (data.latest_stats && Object.keys(data.latest_stats).length > 0) {
+                console.log('Updating stats from snapshot:', data.latest_stats);
+                updateStats(data.latest_stats);
+            } else {
+                console.log('No stats in snapshot');
+            }
+
+            // Update training metrics
+            if (data.latest_metrics && Object.keys(data.latest_metrics).length > 0) {
+                console.log('Updating metrics from snapshot:', data.latest_metrics);
+                updateTrainingMetrics(data.latest_metrics);
+            } else {
+                console.log('No metrics in snapshot');
+            }
+
+            // Update current action
+            if (data.current_action !== null && data.current_action !== undefined) {
+                console.log('Updating action from snapshot:', data.current_action);
+                updateCurrentAction(data.current_action, data.current_step);
+            } else {
+                console.log('No current action in snapshot');
+            }
+
+            // Update current price
+            if (data.current_price !== null && data.current_price !== undefined) {
+                console.log('Updating price from snapshot:', data.current_price);
+                document.getElementById('current-price-display').textContent = formatCurrency(data.current_price, 2);
+            } else {
+                console.log('No current price in snapshot');
+            }
+
+            // Update episode history
+            if (data.episode_history && Array.isArray(data.episode_history)) {
+                console.log(`Updating episode history: ${data.episode_history.length} episodes`);
+                // Replace the local episode history with the server's version
+                episodeHistory.length = 0;
+                episodeHistory.push(...data.episode_history);
+                updateEpisodeHistoryTable();
+            } else {
+                console.log('No episode history in snapshot');
+            }
+
+            // Update max episode steps from snapshot
+            if (data.max_episode_steps !== null && data.max_episode_steps !== undefined) {
+                maxEpisodeSteps = data.max_episode_steps;
+                document.getElementById('total-steps').textContent = maxEpisodeSteps;
+                console.log(`Max episode steps from snapshot: ${maxEpisodeSteps}`);
+            }
+
+            // Update current step if available
+            if (data.current_step !== null && data.current_step !== undefined) {
+                document.getElementById('current-step').textContent = data.current_step;
+                updateStepProgress(data.current_step, maxEpisodeSteps);
+                console.log(`Current step from snapshot: ${data.current_step}`);
+            }
+
+            // Update training state for control panel
+            if (data.is_active !== undefined) {
+                updateTrainingState(data.is_active);
+            }
+
+            console.log('State snapshot processing complete');
+        }
+
+        function resetDashboard() {
+            // Clear all episode data
+            priceData.length = 0;
+            portfolioData.length = 0;
+            rewardData.length = 0;
+            immediateRewardData.length = 0;
+            timingRewardData.length = 0;
+            growthRewardData.length = 0;
+            tradesList.length = 0;
+            rewardsList.length = 0;
+            buyMarkers.length = 0;
+            sellMarkers.length = 0;
+            actionCounts.hold = 0;
+            actionCounts.buy = 0;
+            actionCounts.sell = 0;
+            totalActions = 0;
+            actionHistory.length = 0;
+            holdRateData.length = 0;
+            buyRateData.length = 0;
+            sellRateData.length = 0;
+            episodeHistory.length = 0;
+
+            // Reset cumulative rewards
+            cumulativeRewards.total = 0;
+            cumulativeRewards.portfolio_growth = 0;
+            cumulativeRewards.immediate = 0;
+            cumulativeRewards.timing = 0;
+
+            // Reset previous values for change tracking
+            for (let key in previousValues) {
+                previousValues[key] = null;
+            }
+
+            // Reset all stat displays
+            document.getElementById('portfolio-value').textContent = '$1,000.00';
+            document.getElementById('cash-balance').textContent = '$0.00';
+            document.getElementById('crypto-value').textContent = '$0.00';
+            document.getElementById('roi').textContent = '0.00%';
+            document.getElementById('current-price-display').textContent = '$0.00';
+            document.getElementById('num-trades-chart').textContent = '0';
+            document.getElementById('win-rate-chart').textContent = '0.00%';
+            document.getElementById('avg-profit-chart').textContent = '$0.00';
+            document.getElementById('total-fees-chart').textContent = '$0.00';
+            document.getElementById('reward-total').textContent = '0.00';
+            document.getElementById('reward-growth').textContent = '0.00';
+            document.getElementById('reward-immediate').textContent = '0.00';
+            document.getElementById('reward-timing').textContent = '0.00';
+            document.getElementById('current-action').textContent = 'HOLD';
+            document.getElementById('current-action').className = 'stat-value neutral';
+            document.getElementById('hold-count').textContent = '0 (0%)';
+            document.getElementById('buy-count').textContent = '0 (0%)';
+            document.getElementById('sell-count').textContent = '0 (0%)';
+            document.getElementById('epsilon').textContent = '0.00';
+            document.getElementById('loss').textContent = '0.00';
+            document.getElementById('learning-rate').textContent = '0.00';
+            document.getElementById('memory-size').textContent = '0';
+            document.getElementById('current-step').textContent = '0';
+            document.getElementById('total-steps').textContent = '?';
+
+            // Reset step tracking
+            maxEpisodeSteps = null;
+            updateStepProgress(0, null);
+
+            // Update charts
+            updateCharts();
+            updateTradesList();
+            updateRewardsList();
+            updateEpisodeHistoryTable();
+
+            console.log('Dashboard reset complete');
+        }
+
+        function handleEpisodeStart(data) {
+            document.getElementById('current-episode').textContent = data.episode;
+            document.getElementById('total-episodes').textContent = data.total_episodes;
+            updateProgress(data.episode, data.total_episodes);
+
+            // Update max episode steps from config
+            if (data.config && data.config.max_episode_steps) {
+                maxEpisodeSteps = data.config.max_episode_steps;
+                document.getElementById('total-steps').textContent = maxEpisodeSteps;
+            } else {
+                maxEpisodeSteps = null;
+                document.getElementById('total-steps').textContent = '?';
+            }
+
+            // Reset step progress
+            document.getElementById('current-step').textContent = '0';
+            updateStepProgress(0, maxEpisodeSteps);
+
+            // Update episode counter in navbar
+            const dateRangeEl = document.getElementById('date-range');
+            const currentText = dateRangeEl.textContent;
+            if (currentText && currentText.includes('•')) {
+                // Replace episode part
+                const parts = currentText.split('•');
+                if (parts.length >= 2) {
+                    dateRangeEl.textContent = `• ${parts[1].split('•')[0].trim()} • Episode ${data.episode}/${data.total_episodes}`;
+                }
+            }
+
+            // Clear all data for new episode
+            priceData.length = 0;
+            portfolioData.length = 0;
+            rewardData.length = 0;
+            immediateRewardData.length = 0;
+            timingRewardData.length = 0;
+            growthRewardData.length = 0;
+            tradesList.length = 0;
+            rewardsList.length = 0;
+            buyMarkers.length = 0;
+            sellMarkers.length = 0;
+            actionCounts.hold = 0;
+            actionCounts.buy = 0;
+            actionCounts.sell = 0;
+            totalActions = 0;
+            actionHistory.length = 0;
+            holdRateData.length = 0;
+            buyRateData.length = 0;
+            sellRateData.length = 0;
+
+            // Reset action display
+            document.getElementById('current-action').textContent = 'HOLD';
+            document.getElementById('current-action').className = 'stat-value neutral';
+            document.getElementById('hold-count').textContent = '0 (0%)';
+            document.getElementById('buy-count').textContent = '0 (0%)';
+            document.getElementById('sell-count').textContent = '0 (0%)';
+
+            // Reset cumulative rewards
+            cumulativeRewards.total = 0;
+            cumulativeRewards.portfolio_growth = 0;
+            cumulativeRewards.immediate = 0;
+            cumulativeRewards.timing = 0;
+
+            // Reset previous values for change tracking
+            for (let key in previousValues) {
+                previousValues[key] = null;
+            }
+
+            // Reset stats display to initial values
+            document.getElementById('portfolio-value').innerHTML = '$0.00';
+            document.getElementById('cash-balance').innerHTML = '$0.00';
+            document.getElementById('crypto-value').innerHTML = '$0.00';
+            document.getElementById('roi').innerHTML = '0.00%';
+            document.getElementById('unrealized-pnl').innerHTML = '$0.00 (0.00%)';
+            document.getElementById('current-price-display').innerHTML = '$0.00';
+            document.getElementById('num-trades-chart').textContent = '0';
+            document.getElementById('win-rate-chart').textContent = '0.00%';
+            document.getElementById('avg-profit-chart').textContent = '$0.00';
+            document.getElementById('total-fees-chart').textContent = '$0.00';
+            document.getElementById('reward-total').innerHTML = '0.00';
+            document.getElementById('reward-growth').innerHTML = '0.00';
+            document.getElementById('reward-immediate').innerHTML = '0.00';
+            document.getElementById('reward-timing').innerHTML = '0.00';
+
+            // Force chart update to clear visuals
+            updateCharts();
+            updateTradesList();
+            updateRewardsList();
+
+            // Update training state
+            updateTrainingState(true);
+
+            console.log('Episode started - all data and stats cleared');
+        }
+
+        function handleStepUpdate(data) {
+            const stats = data.stats;
+
+            // Accumulate rewards from this step
+            if (data.reward !== undefined) {
+                cumulativeRewards.total += data.reward;
+            }
+            const breakdown = data.reward_breakdown || stats.reward_breakdown;
+            if (breakdown) {
+                cumulativeRewards.portfolio_growth += (breakdown.portfolio_growth || 0);
+                cumulativeRewards.immediate += (breakdown.immediate || 0);
+                cumulativeRewards.timing += (breakdown.timing || 0);
+
+                // Track reward history for rewards tab (only on significant rewards)
+                const totalReward = breakdown.total || data.reward || 0;
+                if (Math.abs(totalReward) > 0.01) {
+                    rewardsList.unshift({
+                        step: data.step,
+                        total: totalReward,
+                        immediate: breakdown.immediate || 0,
+                        timing: breakdown.timing || 0,
+                        portfolio_growth: breakdown.portfolio_growth || 0,
+                        components: breakdown
+                    });
+
+                    // Limit to 100 entries
+                    if (rewardsList.length > 100) {
+                        rewardsList.pop();
+                    }
+
+                    updateRewardsList();
+                }
+            }
+
+            // Update stats
+            updateStats(stats);
+
+            // Update current action display
+            updateCurrentAction(data.action, data.step);
+
+            // Update step progress
+            if (data.step !== undefined) {
+                document.getElementById('current-step').textContent = data.step;
+                updateStepProgress(data.step, maxEpisodeSteps);
+            }
+
+            // Update current price display from step data
+            if (data.price !== undefined) {
+                updateValueWithChange('current-price-display', data.price, 'current_price', (v) => formatCurrency(v, 2));
+            }
+
+            // Add to charts
+            const step = data.step;
+            priceData.push({x: step, y: data.price});
+            if (stats.portfolio_value !== undefined) {
+                portfolioData.push({x: step, y: stats.portfolio_value});
+            }
+
+            // Plot cumulative reward values
+            rewardData.push({x: step, y: cumulativeRewards.total});
+            immediateRewardData.push({x: step, y: cumulativeRewards.immediate});
+            timingRewardData.push({x: step, y: cumulativeRewards.timing});
+            growthRewardData.push({x: step, y: cumulativeRewards.portfolio_growth});
+
+            // Limit data points
+            if (priceData.length > maxDataPoints) {
+                priceData.shift();
+                portfolioData.shift();
+                rewardData.shift();
+                immediateRewardData.shift();
+                timingRewardData.shift();
+                growthRewardData.shift();
+
+                // Get the minimum step still visible in the window
+                const minVisibleStep = priceData.length > 0 ? priceData[0].x : 0;
+
+                // Remove buy markers that are no longer in the visible window
+                while (buyMarkers.length > 0 && buyMarkers[0].x < minVisibleStep) {
+                    buyMarkers.shift();
+                }
+
+                // Remove sell markers that are no longer in the visible window
+                while (sellMarkers.length > 0 && sellMarkers[0].x < minVisibleStep) {
+                    sellMarkers.shift();
+                }
+            }
+
+            updateCharts();
+        }
+
+        function updateCurrentAction(action, step) {
+            // Action mapping: 0=HOLD, 1-4=BUY(10/25/50/100%), 5-8=SELL(10/25/50/100%)
+            const actionEl = document.getElementById('current-action');
+            let actionType, actionText, actionClass;
+
+            if (action === 0) {
+                actionType = 'hold';
+                actionText = 'HOLD';
+                actionClass = 'neutral';
+            } else if (action >= 1 && action <= 4) {
+                actionType = 'buy';
+                const percent = {1: '10%', 2: '25%', 3: '50%', 4: '100%'}[action];
+                actionText = `BUY ${percent}`;
+                actionClass = 'positive';
+            } else if (action >= 5 && action <= 8) {
+                actionType = 'sell';
+                const percent = {5: '10%', 6: '25%', 7: '50%', 8: '100%'}[action];
+                actionText = `SELL ${percent}`;
+                actionClass = 'negative';
+            }
+
+            actionEl.textContent = actionText;
+            actionEl.className = `stat-value ${actionClass}`;
+            actionEl.style.fontSize = '20px';
+
+            // Update counts
+            actionCounts[actionType]++;
+            totalActions++;
+
+            // Add to action history for rolling average
+            actionHistory.push(actionType);
+            if (actionHistory.length > actionHistoryWindow) {
+                actionHistory.shift();
+            }
+
+            // Calculate rolling percentages
+            const windowSize = actionHistory.length;
+            const holdCount = actionHistory.filter(a => a === 'hold').length;
+            const buyCount = actionHistory.filter(a => a === 'buy').length;
+            const sellCount = actionHistory.filter(a => a === 'sell').length;
+
+            const holdPctRolling = (holdCount / windowSize * 100);
+            const buyPctRolling = (buyCount / windowSize * 100);
+            const sellPctRolling = (sellCount / windowSize * 100);
+
+            // Add to chart data
+            holdRateData.push({x: step || totalActions, y: holdPctRolling});
+            buyRateData.push({x: step || totalActions, y: buyPctRolling});
+            sellRateData.push({x: step || totalActions, y: sellPctRolling});
+
+            // Limit data points
+            if (holdRateData.length > maxDataPoints) {
+                holdRateData.shift();
+                buyRateData.shift();
+                sellRateData.shift();
+            }
+
+            const holdPct = formatNumber(actionCounts.hold / totalActions * 100, 1);
+            const buyPct = formatNumber(actionCounts.buy / totalActions * 100, 1);
+            const sellPct = formatNumber(actionCounts.sell / totalActions * 100, 1);
+
+            document.getElementById('hold-count').textContent = `${formatNumber(actionCounts.hold, 0)} (${holdPct}%)`;
+            document.getElementById('buy-count').textContent = `${formatNumber(actionCounts.buy, 0)} (${buyPct}%)`;
+            document.getElementById('sell-count').textContent = `${formatNumber(actionCounts.sell, 0)} (${sellPct}%)`;
+        }
+
+        function handleTradeExecuted(data) {
+            tradesList.unshift({
+                type: data.trade_type,
+                price: data.price,
+                quantity: data.quantity,
+                value: data.total_value,
+                step: data.step
+            });
+
+            // Add marker to chart
+            const marker = {x: data.step, y: data.price};
+            if (data.trade_type === 'BUY') {
+                buyMarkers.push(marker);
+            } else if (data.trade_type === 'SELL') {
+                sellMarkers.push(marker);
+            }
+
+            // Limit markers to maxDataPoints
+            if (buyMarkers.length > maxDataPoints) {
+                buyMarkers.shift();
+            }
+            if (sellMarkers.length > maxDataPoints) {
+                sellMarkers.shift();
+            }
+
+            // Limit to 50 trades
+            if (tradesList.length > 50) {
+                tradesList.pop();
+            }
+
+            updateTradesList();
+        }
+
+        function handleEpisodeEnd(data) {
+            updateStats(data.final_stats);
+
+            // Add to episode history
+            const episodeStats = {
+                episode: data.episode,
+                reward: data.final_stats.reward_breakdown?.total || 0,
+                roi: data.final_stats.roi || 0,
+                num_trades: data.final_stats.num_trades || 0,
+                win_rate: data.final_stats.win_rate || 0,
+                portfolio_value: data.final_stats.portfolio_value || 0,
+                duration: data.duration_seconds || 0
+            };
+
+            episodeHistory.unshift(episodeStats); // Add to front
+
+            // Keep only last N episodes
+            if (episodeHistory.length > maxEpisodeHistory) {
+                episodeHistory.pop();
+            }
+
+            updateEpisodeHistoryTable();
+        }
+
+        function updateEpisodeHistoryTable() {
+            const tbody = document.getElementById('episode-history-table');
+
+            if (episodeHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-secondary" style="padding: 18px; font-size: 11px;">
+                            No episodes completed yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = episodeHistory.map(ep => {
+                const rewardClass = ep.reward > 0 ? 'positive' : ep.reward < 0 ? 'negative' : 'neutral';
+                const roiClass = ep.roi > 0 ? 'positive' : ep.roi < 0 ? 'negative' : 'neutral';
+
+                return `
+                    <tr>
+                        <td style="font-size: 10px; padding: 5px;">${ep.episode}</td>
+                        <td style="font-size: 10px; padding: 5px;" class="${rewardClass}">${formatNumber(ep.reward, 2)}</td>
+                        <td style="font-size: 10px; padding: 5px;" class="${roiClass}">${formatNumber(ep.roi, 2)}%</td>
+                        <td style="font-size: 10px; padding: 5px;">${ep.num_trades}</td>
+                        <td style="font-size: 10px; padding: 5px;">${formatNumber(ep.win_rate * 100, 1)}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleTrainingMetrics(data) {
+            updateTrainingMetrics(data);
+        }
+
+        function handleSystemStatus(data) {
+            // Can add system metrics display here
+        }
+
+        // Helper function to update value with change indicator
+        function updateValueWithChange(elementId, newValue, key, formatter) {
+            const element = document.getElementById(elementId);
+            const prevValue = previousValues[key];
+
+            let indicator = '';
+            let colorClass = 'neutral';
+
+            if (prevValue !== null && newValue !== prevValue) {
+                if (newValue > prevValue) {
+                    indicator = ' <small style="color: var(--green);">▲</small>';
+                    colorClass = 'positive';
+                } else if (newValue < prevValue) {
+                    indicator = ' <small style="color: var(--red);">▼</small>';
+                    colorClass = 'negative';
+                }
+            }
+
+            element.innerHTML = formatter(newValue) + indicator;
+            element.className = 'stat-value ' + colorClass;
+            previousValues[key] = newValue;
+        }
+
+        // Update UI functions
+        function updateStats(stats) {
+            // Portfolio (left column)
+            if (stats.portfolio_value !== undefined) {
+                updateValueWithChange('portfolio-value', stats.portfolio_value, 'portfolio_value', (v) => formatCurrency(v, 2));
+            }
+            if (stats.cash !== undefined) {
+                updateValueWithChange('cash-balance', stats.cash, 'cash', (v) => formatCurrency(v, 2));
+            }
+            if (stats.crypto_value !== undefined) {
+                updateValueWithChange('crypto-value', stats.crypto_value, 'crypto_value', (v) => formatCurrency(v, 2));
+            }
+
+            // ROI
+            if (stats.roi !== undefined) {
+                updateValueWithChange('roi', stats.roi, 'roi', (v) => `${formatNumber(v, 2)}%`);
+            }
+
+            // Position - always show, update color based on P&L
+            if (stats.unrealized_pnl !== undefined && stats.unrealized_pnl_pct !== undefined) {
+                updateValueWithChange('unrealized-pnl', stats.unrealized_pnl, 'unrealized_pnl',
+                    (v) => `${formatCurrency(v, 2)} (${formatNumber(stats.unrealized_pnl_pct, 2)}%)`);
+            }
+
+            // Performance (chart box only)
+            if (stats.num_trades !== undefined) {
+                document.getElementById('num-trades-chart').textContent = formatNumber(stats.num_trades, 0);
+            }
+            if (stats.win_rate !== undefined) {
+                document.getElementById('win-rate-chart').textContent = `${formatNumber(stats.win_rate * 100, 2)}%`;
+            }
+            if (stats.avg_profit !== undefined) {
+                document.getElementById('avg-profit-chart').textContent = formatCurrency(stats.avg_profit, 2);
+            }
+            if (stats.total_fees !== undefined) {
+                document.getElementById('total-fees-chart').textContent = formatCurrency(stats.total_fees, 2);
+            }
+
+            // Update current price display (but not in performance box)
+            const currentPrice = stats.current_price || stats.price || 0;
+            if (currentPrice) {
+                updateValueWithChange('current-price-display', currentPrice, 'current_price', (v) => formatCurrency(v, 2));
+            }
+
+            // Display cumulative reward values
+            updateValueWithChange('reward-total', cumulativeRewards.total, 'reward_total', (v) => formatNumber(v, 2));
+            updateValueWithChange('reward-growth', cumulativeRewards.portfolio_growth, 'reward_growth', (v) => formatNumber(v, 2));
+            updateValueWithChange('reward-immediate', cumulativeRewards.immediate, 'reward_immediate', (v) => formatNumber(v, 2));
+            updateValueWithChange('reward-timing', cumulativeRewards.timing, 'reward_timing', (v) => formatNumber(v, 2));
+        }
+
+        function updateTrainingMetrics(metrics) {
+            console.log('Updating training metrics:', metrics);
+            if (metrics.epsilon !== undefined) document.getElementById('epsilon').textContent = formatNumber(metrics.epsilon, 4);
+            if (metrics.loss !== undefined) document.getElementById('loss').textContent = formatNumber(metrics.loss, 4);
+            if (metrics.learning_rate !== undefined) {
+                document.getElementById('learning-rate').textContent = formatNumber(metrics.learning_rate, 6);
+                console.log('Set learning rate to:', metrics.learning_rate);
+            }
+            if (metrics.memory_size !== undefined) {
+                document.getElementById('memory-size').textContent = formatNumber(metrics.memory_size, 0);
+                console.log('Set memory size to:', metrics.memory_size);
+            }
+        }
+
+        function updateProgress(current, total) {
+            const percent = total > 0 ? (current / total * 100) : 0;
+            document.getElementById('episode-progress').style.width = `${percent}%`;
+        }
+
+        function updateStepProgress(current, total) {
+            if (!total) {
+                document.getElementById('step-progress').style.width = '0%';
+                return;
+            }
+            const percent = (current / total * 100);
+            document.getElementById('step-progress').style.width = `${percent}%`;
+        }
+
+        function updateCharts() {
+            // Update price chart with dual Y-axis and trade markers
+            priceChart.data.labels = priceData.map(d => d.x);
+            priceChart.data.datasets[0].data = priceData.map(d => d.y);
+            priceChart.data.datasets[1].data = portfolioData.map(d => d.y);
+            priceChart.data.datasets[2].data = buyMarkers;  // Buy markers
+            priceChart.data.datasets[3].data = sellMarkers;  // Sell markers
+            priceChart.update();
+
+            // Update reward chart with total + 3 component lines
+            rewardChart.data.labels = rewardData.map(d => d.x);
+            rewardChart.data.datasets[0].data = rewardData.map(d => d.y);
+            rewardChart.data.datasets[1].data = growthRewardData.map(d => d.y);
+            rewardChart.data.datasets[2].data = immediateRewardData.map(d => d.y);
+            rewardChart.data.datasets[3].data = timingRewardData.map(d => d.y);
+            rewardChart.update();
+
+            // Update actions chart with rolling percentages
+            actionsChart.data.labels = holdRateData.map(d => d.x);
+            actionsChart.data.datasets[0].data = holdRateData.map(d => d.y);
+            actionsChart.data.datasets[1].data = buyRateData.map(d => d.y);
+            actionsChart.data.datasets[2].data = sellRateData.map(d => d.y);
+            actionsChart.update();
+        }
+
+        function updateTradesList() {
+            const listEl = document.getElementById('trades-list');
+
+            if (tradesList.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-secondary py-4"><small>No trades yet</small></div>';
+                return;
+            }
+
+            listEl.innerHTML = tradesList.map(trade => `
+                <div class="trade-row ${trade.type.toLowerCase()}">
+                    <div>
+                        <span class="badge ${trade.type === 'BUY' ? 'bg-success' : 'bg-danger'}">${trade.type}</span>
+                        <small class="ms-2">${formatNumber(trade.quantity, 4)}</small>
+                    </div>
+                    <div class="text-end">
+                        <div><strong>${formatCurrency(trade.price, 2)}</strong></div>
+                        <small class="text-secondary">${formatCurrency(trade.value, 2)}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateRewardsList() {
+            const listEl = document.getElementById('rewards-list');
+
+            if (rewardsList.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-secondary py-4"><small>No rewards yet</small></div>';
+                return;
+            }
+
+            listEl.innerHTML = rewardsList.map(reward => {
+                const isPositive = reward.total >= 0;
+                const components = reward.components || {};
+
+                // Get the top contributing component
+                const componentNames = Object.keys(components).filter(k => k !== 'total' && k !== 'immediate' && k !== 'timing' && k !== 'portfolio_growth');
+                let topComponent = '';
+                let topValue = 0;
+                componentNames.forEach(name => {
+                    if (Math.abs(components[name]) > Math.abs(topValue)) {
+                        topValue = components[name];
+                        topComponent = name.replace('Reward', '');
+                    }
+                });
+
+                return `
+                <div class="reward-row ${isPositive ? 'positive' : 'negative'}">
+                    <div>
+                        <span class="badge ${isPositive ? 'bg-success' : 'bg-danger'}">${isPositive ? '+' : ''}${formatNumber(reward.total, 2)}</span>
+                        <small class="ms-2 text-secondary">Step ${reward.step}</small>
+                        ${topComponent ? `<div class="component">${topComponent}: ${formatNumber(topValue, 2)}</div>` : ''}
+                    </div>
+                    <div class="text-end">
+                        <div><small class="text-success">${formatNumber(reward.immediate, 2)}</small></div>
+                        <div><small class="text-info">${formatNumber(reward.timing, 2)}</small></div>
+                        <div><small class="text-warning">${formatNumber(reward.portfolio_growth, 2)}</small></div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // ====================================================================
+        // Number Formatting Helper
+        // ====================================================================
+        function formatNumber(num, decimals = 2) {
+            if (num === null || num === undefined) return '0.00';
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function formatCurrency(num, decimals = 2) {
+            if (num === null || num === undefined) return '$0.00';
+            return '$' + formatNumber(num, decimals);
+        }
+
+        // ====================================================================
+        // Training Control Panel
+        // ====================================================================
+        let agentConnected = false;
+        let trainingActive = false;
+
+        function updateAgentStatus(connected) {
+            agentConnected = connected;
+            const statusEl = document.getElementById('agent-status');
+            const controlStatus = document.getElementById('control-status');
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+
+            if (connected) {
+                statusEl.className = 'connection-status connected';
+                statusEl.innerHTML = '<span class="connection-dot" style="background-color: currentColor;"></span><span>Agent Online</span>';
+                controlStatus.textContent = trainingActive ? 'Training in progress...' : 'Agent ready. Select options and click Start.';
+                startBtn.disabled = trainingActive;
+                stopBtn.disabled = !trainingActive;
+            } else {
+                statusEl.className = 'connection-status disconnected';
+                statusEl.innerHTML = '<span class="connection-dot" style="background-color: currentColor;"></span><span>Agent Offline</span>';
+                controlStatus.textContent = 'Waiting for agent connection...';
+                startBtn.disabled = true;
+                stopBtn.disabled = true;
+            }
+        }
+
+        function updateTrainingState(active) {
+            trainingActive = active;
+            const controlStatus = document.getElementById('control-status');
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+
+            if (agentConnected) {
+                startBtn.disabled = active;
+                stopBtn.disabled = !active;
+                controlStatus.textContent = active ? 'Training in progress...' : 'Agent ready. Select options and click Start.';
+            }
+        }
+
+        async function startTraining() {
+            const profile = document.getElementById('profile-select').value;
+            const config = document.getElementById('config-select').value;
+            const episodesInput = document.getElementById('episodes-input').value;
+            const controlStatus = document.getElementById('control-status');
+
+            const data = {
+                profile: profile,
+                config: config
+            };
+
+            if (episodesInput && parseInt(episodesInput) > 0) {
+                data.episodes = parseInt(episodesInput);
+            }
+
+            controlStatus.textContent = 'Sending start command...';
+
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        command: 'start_training',
+                        data: data
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Start training result:', result);
+
+                if (result.status === 'sent') {
+                    controlStatus.textContent = 'Command sent. Starting training...';
+                    updateTrainingState(true);
+                } else if (result.status === 'queued') {
+                    controlStatus.textContent = 'Command queued (agent offline)';
+                } else {
+                    controlStatus.textContent = `Error: ${result.message || 'Unknown error'}`;
+                }
+            } catch (error) {
+                console.error('Error starting training:', error);
+                controlStatus.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function stopTraining() {
+            const controlStatus = document.getElementById('control-status');
+            controlStatus.textContent = 'Sending stop command...';
+
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        command: 'stop_training',
+                        data: {}
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Stop training result:', result);
+
+                if (result.status === 'sent') {
+                    controlStatus.textContent = 'Stop command sent. Waiting for graceful shutdown...';
+                } else {
+                    controlStatus.textContent = `Error: ${result.message || 'Unknown error'}`;
+                }
+            } catch (error) {
+                console.error('Error stopping training:', error);
+                controlStatus.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Handle agent_status events
+        function handleAgentStatus(data) {
+            updateAgentStatus(data.connected);
+        }
+
+        // Fetch initial agent status
+        async function fetchAgentStatus() {
+            try {
+                const response = await fetch('/api/agent/status');
+                const data = await response.json();
+                updateAgentStatus(data.connected);
+                updateTrainingState(data.training_active);
+            } catch (error) {
+                console.error('Error fetching agent status:', error);
+            }
+        }
+
+        // Setup control panel event listeners
+        document.getElementById('start-btn').addEventListener('click', startTraining);
+        document.getElementById('stop-btn').addEventListener('click', stopTraining);
+
+        // ====================================================================
+        // Initialize
+        // ====================================================================
+        initCharts();
+        connect();
+        fetchAgentStatus();
+    </script>
+</body>
+</html>

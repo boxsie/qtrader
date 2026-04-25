@@ -1,0 +1,77 @@
+# DAY TRADER PROFILE
+# Trading Strategy: Intraday swings
+# Hold time: Hours within a day
+# Risk tolerance: Medium
+
+name: "day_trader"
+description: "Trades intraday swings on 15m-1h timeframes"
+
+# Timeframe focus - what intervals this strategy cares about
+timeframe_weights:
+  1m: 0.00   # Ignore - noise
+  5m: 0.15   # Context - entry refinement
+  15m: 0.45  # PRIMARY - main trading decisions
+  30m: 0.15  # Context - trend confirmation
+  1h: 0.20   # SECONDARY - trend direction
+  4h: 0.05   # Context - major S/R levels
+  1d: 0.00   # Ignore - too slow for intraday
+
+# Reward configuration for day trading
+reward_config:
+  # Core profit tracking
+  - type: profit_loss
+    weight: 2.0
+    params:
+      profit_multiplier: 10.0
+      loss_multiplier: 5.0
+
+  # Portfolio growth incentive
+  - type: portfolio_growth
+    weight: 1.5
+    params:
+      peak_multiplier: 2.0
+
+  # Risk-adjusted returns
+  - type: sharpe_ratio
+    weight: 1.0
+    params:
+      window: 50
+      sharpe_multiplier: 0.8
+
+  # Protect against drawdowns
+  - type: drawdown_penalty
+    weight: 1.5
+    params:
+      penalty_multiplier: 5.0
+
+  # Position sizing optimization
+  - type: position_sizing
+    weight: 1.0
+    params:
+      optimal_position_pct: 0.65
+      tolerance: 0.2
+      max_penalty: 2.5
+
+  # Buy dips, sell spikes
+  - type: buy_the_dip
+    weight: 1.0
+    params:
+      lookback: 12
+      dip_threshold: 0.02
+      spike_threshold: 0.02
+      dip_buy_reward: 5.0
+      spike_sell_reward: 5.0
+
+  # Trend following
+  - type: momentum_alignment
+    weight: 1.0
+    params:
+      lookback: 8
+      alignment_reward: 3.0
+      misalignment_penalty: 1.5
+
+  # Penalize overtrading
+  - type: trade_frequency
+    weight: 1.0
+    params:
+      penalty_per_trade: 0.1

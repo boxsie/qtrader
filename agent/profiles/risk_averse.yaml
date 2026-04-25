@@ -1,0 +1,56 @@
+# Risk Averse Trader Profile
+#
+# Conservative trader focused on capital preservation and risk management.
+# Emphasizes Sharpe ratio, drawdown protection, and optimal position sizing.
+
+name: Risk Averse
+description: Conservative trader focused on capital preservation and drawdown protection
+
+# Timeframe weights - balanced view
+timeframe_weights:
+  1m: 0.2
+  5m: 0.3
+  15m: 0.3
+  1h: 0.2
+
+# Reward configuration - risk management focused
+reward_config:
+  # Penalize losses heavily, be cautious with profits
+  - type: profit_loss
+    weight: 1.0
+    params:
+      profit_multiplier: 5.0
+      loss_multiplier: 10.0  # Heavy loss penalty
+
+  # Strong penalty for drawdowns - preserve capital!
+  - type: drawdown_penalty
+    weight: 3.0
+    params:
+      penalty_multiplier: 8.0
+
+  # Reward optimal position sizing
+  - type: position_sizing
+    weight: 2.0
+    params:
+      optimal_position_pct: 0.5  # Conservative 50% max
+      tolerance: 0.15
+      max_penalty: 3.0
+
+  # High Sharpe ratio = consistent returns with low volatility
+  - type: sharpe_ratio
+    weight: 2.5
+    params:
+      window: 50
+      sharpe_multiplier: 1.0
+
+  # Don't overtrade
+  - type: trade_frequency
+    weight: 1.5
+    params:
+      penalty_per_trade: 0.2  # Higher penalty - very selective
+
+  # Portfolio growth still matters, but less weight
+  - type: portfolio_growth
+    weight: 1.0
+    params:
+      peak_multiplier: 1.5

@@ -1,0 +1,73 @@
+# Balanced Trader Profile
+#
+# Well-rounded trader using all reward signals.
+# Balanced approach to risk, return, and trading frequency.
+
+name: Balanced Trader
+description: Well-rounded trader using all reward signals with balanced risk/return
+
+# Timeframe weights - equal balance
+timeframe_weights:
+  1m: 0.25
+  5m: 0.25
+  15m: 0.25
+  1h: 0.25
+
+# Reward configuration - balanced mix
+reward_config:
+  # Profit is king
+  - type: profit_loss
+    weight: 2.0
+    params:
+      profit_multiplier: 10.0
+      loss_multiplier: 5.0
+
+  # Grow the portfolio
+  - type: portfolio_growth
+    weight: 1.5
+    params:
+      peak_multiplier: 2.0
+
+  # Risk-adjusted returns
+  - type: sharpe_ratio
+    weight: 1.0
+    params:
+      window: 50
+      sharpe_multiplier: 0.8
+
+  # Protect downside
+  - type: drawdown_penalty
+    weight: 1.5
+    params:
+      penalty_multiplier: 5.0
+
+  # Optimal sizing
+  - type: position_sizing
+    weight: 1.0
+    params:
+      optimal_position_pct: 0.65
+      tolerance: 0.2
+      max_penalty: 2.5
+
+  # Mix of contrarian and momentum
+  - type: buy_the_dip
+    weight: 1.0
+    params:
+      lookback: 12
+      dip_threshold: 0.02
+      spike_threshold: 0.02
+      dip_buy_reward: 5.0
+      spike_sell_reward: 5.0
+
+  - type: momentum_alignment
+    weight: 1.0
+    params:
+      lookback: 8
+      alignment_reward: 3.0
+      misalignment_penalty: 1.5
+
+  # Moderate trade frequency
+  - type: trade_frequency
+    weight: 1.0
+    params:
+      penalty_per_trade: 0.1

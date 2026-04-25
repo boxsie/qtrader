@@ -1,0 +1,35 @@
+# SCALPER PROFILE
+# Trading Strategy: Quick scalps on 1-5min moves
+# Hold time: Seconds to minutes
+# Risk tolerance: Low per trade, high frequency
+
+name: "scalper"
+description: "High-frequency scalping on 1-5min timeframes"
+
+# Timeframe focus - what intervals this strategy cares about
+timeframe_weights:
+  1m: 0.50   # PRIMARY - main trading decisions
+  5m: 0.35   # SECONDARY - trend confirmation
+  15m: 0.10  # Context - avoid counter-trend
+  30m: 0.05  # Context - major levels
+  1h: 0.00   # Ignore - too slow
+  4h: 0.00   # Ignore
+  1d: 0.00   # Ignore
+
+# Reward configuration - aggressive realized profits, short-horizon opportunity
+reward_config:
+  - type: profit_loss
+    weight: 3.0
+    params:
+      profit_multiplier: 15.0
+      loss_multiplier: 5.0
+
+  - type: opportunity_cost
+    weight: 1.0
+    params:
+      lookback: 3
+
+  - type: portfolio_growth
+    weight: 0.5
+    params:
+      peak_multiplier: 1.5
